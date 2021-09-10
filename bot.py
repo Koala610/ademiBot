@@ -3,6 +3,7 @@ import logging
 import re
 import markups as nav
 import json
+import datetime
 
 from importlib import reload
 
@@ -31,6 +32,8 @@ dp = Dispatcher(bot, storage = storage)
 users_db = SQLighter(settings.users_db_path)
 offers_db = Offers_model(settings.offers_db_path)
 
+
+
 #echo
 
 """@dp.message_handler()
@@ -53,11 +56,32 @@ async def add_login(message : types.Message,state:FSMContext):
     else:
         await message.answer("Логин неверный")
 
+
+
+
 @dp.message_handler(state = States.password)
 async def add_password(message : types.Message,state:FSMContext):
     password = message.text
     if users_db.password_exists(password):
         await message.answer("Вы успешно вошли!")
+        """date time"""
+        offers = offers_db.get_offers(1000)
+        isActual = False
+        cur_date = datetime.datetime.now().date()
+        for offer in offers:
+            offer_start_date = offer[2].split('/')
+            offer_finish_date = offer[3].split('/')
+            trans_start_date = datetime.date(int(offer_start_date[2]), int(offer_start_date[1]), int(offer_start_date[0]))
+            trans_finish_date = datetime.date(int(offer_finish_date[2]), int(offer_finish_date[1]), int(offer_finish_date[0]))
+            if cur_date <= trans_finish_date and cur_date >= trans_start_date:
+                isActual = True
+                break
+
+        """"""
+
+        if isActual:
+            nav.mainMenu.add(nav.mealBtn)
+
         await bot.send_message(message.from_user.id, "Привет {0.first_name}".format(message.from_user), reply_markup = nav.mainMenu)
         await state.finish()
     else:
@@ -69,9 +93,22 @@ async def bot_message(message : types.Message):
     if message.text == "🍍 Еда":
         category = 1000
         offers = offers_db.get_offers(1000)
-        await bot.send_message(message.from_user.id, "Список еды")
-        await bot.send_message(message.from_user.id, offers)
+        cur_offers = []
+        cur_date = datetime.datetime.now().date()
+        for offer in offers:
+            offer_start_date = offer[2].split('/')
+            offer_finish_date = offer[3].split('/')
+            trans_start_date = datetime.date(int(offer_start_date[2]), int(offer_start_date[1]), int(offer_start_date[0]))
+            trans_finish_date = datetime.date(int(offer_finish_date[2]), int(offer_finish_date[1]), int(offer_finish_date[0]))
+            if cur_date <= trans_finish_date and cur_date >= trans_start_date:
+                cur_offers.append(offer)
+                
 
+
+        await bot.send_message(message.from_user.id, "Список еды")
+        for offer in cur_offers:
+            result = "<b>Заведение: %s </b>"%(offer[1])
+            await bot.send_message(message.from_user.id, result, reply_markup = nav.inline_menu, parse_mode ='HTML')
 
 
 

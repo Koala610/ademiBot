@@ -1,13 +1,13 @@
 import sqlite3
 
 class Offers_model:
-    def __init__(self,database_file):
-        self.connection = sqlite3.connect(database_file)
+    def __init__(self,db_file):
+        self.connection = sqlite3.connect(db_file)
         self.cursor = self.connection.cursor()
 
 
     def get_offers(self, category):
-        result = self.cursor.execute(f"SELECT * FROM offers WHERE category = ?",(category,)).fetchall()
+        result = self.cursor.execute("SELECT offers.id, b.name, offers.start_date, offers.finish_date  FROM offers INNER JOIN businesses b on offers.bus_id = b.id").fetchall()
         return result
 
 
