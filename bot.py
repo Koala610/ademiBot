@@ -52,6 +52,7 @@ async def add_login(message : types.Message,state:FSMContext):
     #hash = hash(message.text)
     if users_db.user_exists(message.text):
         await message.answer("Введите пароль:")
+        await state.update_data(login = message.text)
         await States.password.set()
     else:
         await message.answer("Логин неверный")
@@ -64,6 +65,11 @@ async def add_password(message : types.Message,state:FSMContext):
     password = message.text
     if users_db.password_exists(password):
         await message.answer("Вы успешно вошли!")
+        state_data = await state.get_data()
+        login = state_data.get("login")
+        user_id = message.from_user.id
+        users_db.update_tg_id(user_id, login)
+
         """date time"""
         offers = offers_db.get_offers(1000)
         isActual = False
@@ -109,6 +115,11 @@ async def bot_message(message : types.Message):
         for offer in cur_offers:
             result = "<b>Заведение: %s </b>"%(offer[1])
             await bot.send_message(message.from_user.id, result, reply_markup = nav.inline_menu, parse_mode ='HTML')
+
+@dp.callback_query_handler(lambda c: c.data == 'sale_btn')
+async def process_callback_button1(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id)
+    
 
 
 
