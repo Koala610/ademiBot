@@ -1,14 +1,15 @@
 import sqlite3
 
-class Offers_model:
+class Admin_sqliter:
     def __init__(self,db_file):
         self.connection = sqlite3.connect(db_file)
         self.cursor = self.connection.cursor()
 
+    def check_if_exists(self, tg_id):
+        result = self.cursor.execute(f"SELECT * FROM admins WHERE tg_id = ? ",(tg_id,)).fetchall()
+        return bool(len(result))
 
-    def get_offers(self, category):
-        result = self.cursor.execute("SELECT offers.id, b.name, offers.start_date, offers.finish_date  FROM offers INNER JOIN businesses b on offers.bus_id = b.id").fetchall()
-        return result
+
 
 
     def close(self):
@@ -19,7 +20,7 @@ class Offers_model:
 
 
 def main():
-    pass
+    db = Admin_sqliter('1.db')
 
 if __name__ == '__main__':
     main()
