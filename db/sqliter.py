@@ -33,11 +33,32 @@ class SQLighter:
         result = self.cursor.execute(f"SELECT * FROM models WHERE tg_id = ?",(tg_id, )).fetchall()
         return result[0]
 
-    def check_if_logged(self, tg_id):
-        result = self.cursor.execute(f"SELECT is_logged FROM models WHERE tg_id = ?",(tg_id, )).fetchall()
+    def get_optional_info(self, tg_id):
+        return self.get_info(tg_id)[9:]
+
+    def check_if_new(self, tg_id):
+        result = self.cursor.execute(f"SELECT is_new FROM models WHERE tg_id = ?",(tg_id, )).fetchall()
         return result[0][0]
 
+    def make_old(self, tg_id):
+        result = self.cursor.execute(f"UPDATE models SET is_new = 0 WHERE tg_id = ?",(tg_id, ))
+        self.commit()
 
+    def update_name(self, tg_id, name):
+        result = self.cursor.execute(f"UPDATE models SET name = ? WHERE tg_id = ?",(name, tg_id, ))
+        self.commit()
+
+    def update_surname(self, tg_id, surname):
+        result = self.cursor.execute(f"UPDATE models SET surname = ? WHERE tg_id = ?",(surname, tg_id, ))
+        self.commit()
+
+    def update_date(self, tg_id, date):
+        result = self.cursor.execute(f"UPDATE models SET birth_date = ? WHERE tg_id = ?",(date, tg_id, ))
+        self.commit()
+
+    def update_gender(self, tg_id, gender):
+        result = self.cursor.execute(f"UPDATE models SET isMale = ? WHERE tg_id = ?",(gender, tg_id, ))
+        self.commit()
 
 
     def password_exists(self, login, password):
@@ -60,10 +81,23 @@ class SQLighter:
             offers_list = offers_taken_dict[0][0].split(',')
         except AttributeError:
             offers_list = []
+        except IndexError:
+            return "tg_id doesn't exist"
 
         offers_len = len(offers_list)-1
         offers_list = offers_list[:offers_len]
         return offers_list
+
+    def replace_offers(self, tg_id, offers):
+        result = self.cursor.execute(f"UPDATE models SET offers_taken = ? WHERE tg_id = ?",(offers, tg_id, ))
+        self.commit()
+
+
+    def del_user_offer(self, tg_id, offer_id):
+        offers = self.get_offers_taken(tg_id)
+        res_offers = [offer for offer in offers if int(offer) != int(offer_id)]
+        res_offers = ','.join(res_offers)+ ","
+        self.replace_offers(tg_id, res_offers)
 
 
 
@@ -77,7 +111,7 @@ class SQLighter:
 
 def main():
     db = SQLighter("1.db")
-    print(db.password_exists("Koala610", 123456))
+    print(db.user_exists('Koala610'))
 
 if __name__ == '__main__':
     main()

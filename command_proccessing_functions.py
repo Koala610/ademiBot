@@ -21,7 +21,9 @@ async def show_offers_taken(src):
     for offer in offers_list:
         bus_id = offers_db.get_business_id(offer)
         bus_name = offers_db.get_business_name(bus_id)
-        menu = get_two_btn_menu("Получить деньги","return::" + str(offer), "Подробнее", "btn" + str(offer))
+        msg_id = str(src.message_id) if type(src) == Message else str(src.message.message_id)
+        chat_id = str(src.chat.id) if type(src) == Message else str(src.message.chat.id)
+        menu = get_two_btn_menu("Получить деньги","return::" + str(offer), "Подробнее", "more_btn::" + str(offer) + "::" + msg_id + "::" + chat_id +"::ret")
         result = "<b>Заведение: %s </b>"%(bus_name) + "\n"
         result += "<b>ID заказа: %s </b>"%(offer)
         await bot.send_message(src.from_user.id, result, reply_markup = menu,  parse_mode ='HTML')
@@ -61,7 +63,7 @@ async def show_new_offers(src):
     await bot.send_message(src.from_user.id, "Список преложений:")
     if len(cur_offers) > 0:
         for offer in cur_offers:
-            menu = get_two_btn_menu("Получить скидку", "sale_btn" + str(offer[0]), "Подробнее", "btn" + str(offer[0]))
+            menu = get_two_btn_menu("Получить скидку", "sale_btn::" + str(offer[0]), "Подробнее", "more_btn::" + str(offer[0]) + "::" + str(src.message_id)+ "::" + str(src.chat.id) +"::sale")
             result = "<b>Заведение: %s </b>"%(offer[1])
             await bot.send_message(src.from_user.id, result, reply_markup = menu, parse_mode ='HTML')
     else:
@@ -111,10 +113,20 @@ async def find_new_offers(src):
 
 async def show_profile(src):
     info = users_db.get_info(src.from_user.id)
+    birth_age = info[11].split('/')
+    cur_month = '%02d'%(datetime.datetime.now().month)
+    cur_day = '%02d'%(datetime.datetime.now().day)
+    age_var1 = int(str(datetime.datetime.now().year) + cur_month + cur_day)
+    age_var2 = int(str(birth_age[2]) + '%02d'%(int(birth_age[1])) + '%02d'%(int(birth_age[0])))
+    age_var_res = (str(age_var1 - age_var2))
+    age = "".join(list(age_var_res)[0:2])
+
     info_str = "Личные данные" + "\n" 
     info_str += "Логин: " + info[1] + "\n"
-    info_str += "Имя: " + info[9] + "\n"
-    info_str += "Фамилия: " + info[10] + "\n"
+    info_str += "Имя: " + info[9] + "\n" if info[9] != None else "Имя: " + " " + "\n"
+    info_str += "Фамилия: " + info[10] + "\n" if info[10] != None else "Фамилия: " + " " + "\n"
+    info_str += "Возраст: " + str(age) + '\n'
+    info_str += "Пол: " + "Мужской" + '\n' if info[11] else "Пол: " + "Женский" + '\n'    
 
     await bot.send_message(src.from_user.id, info_str, reply_markup = nav.profile_menu)
 

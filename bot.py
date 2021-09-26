@@ -29,7 +29,7 @@ command_switch = {
 @dp.message_handler(lambda message: message.text and (message.text =='/start' or message.text == '🚪 Войти'))
 async def login(message: types.Message):
     if users_db.tg_id_exists(message.from_user.id):
-        await show_menu(message, "Добро пожаловать!")
+        await show_profile(message)
     else:
         message_list = []
         await dp.storage.update_data(msg_list = message_list, user = message.from_user.id)
@@ -62,6 +62,50 @@ async def add_login(message : types.Message,state:FSMContext):
 
 
 
+states_switch = {
+    0: 
+    {
+        "state": States.name,
+        "name": "name",
+    },
+    1: 
+    {
+        "state": States.surname,
+        "name": "surname",
+    },
+    2: 
+    {
+        "state": States.date,
+        "name": "date",
+    },
+    3: 
+    {
+        "state": States.gender,
+        "name": "gender",
+    },
+}
+
+async def check_full_fields(src, func = None, text = None):
+    if func != None:
+        await func(src.from_user.id, text)
+    optional_info = users_db.get_optional_info(src.from_user.id)
+    length = len(optional_info)
+    for i in range(length):
+        if optional_info[i] == None:
+            await bot.send_message(src.from_user.id, "Введите " + states_switch[i]['name'] + ":" )
+            await states_switch[i]["state"].set()
+            return False
+    return True
+
+async def show_succ_message(src, state = None, is_new = True):
+    if is_new:
+        users_db.make_old(src.from_user.id)
+    await bot.send_message(src.from_user.id, "Вы успешно вошли!")
+    await bot.send_message(src.from_user.id, "Добро пожаловать!")
+    await show_profile(src = src)
+    if state != None:
+        await state.finish()
+    await dp.storage.close()
 
 @dp.message_handler(state = States.password)
 async def add_password(message : types.Message,state:FSMContext):
@@ -75,12 +119,13 @@ async def add_password(message : types.Message,state:FSMContext):
         message_list = dp_data.get('msg_list')
         for msg in message_list:
             await bot.delete_message(message.chat.id, msg)
-
         await bot.delete_message(message.chat.id, message.message_id)
-        await message.answer("Вы успешно вошли!")
-        await show_menu(src = message, text = "Добро пожаловать!")
-        await state.finish()
-        await dp.storage.close()
+
+        if not users_db.check_if_new(message.from_user.id):
+            await show_succ_message(src = message, state = state, is_new = False)
+        else:
+            await check_full_fields(message, bot.send_message, "Некоторые поля требуют заполнения...")
+
 
         
     else:
@@ -88,6 +133,32 @@ async def add_password(message : types.Message,state:FSMContext):
         dlm_id = del_message.message_id
         await add_message_to_dl(dlm_id, message.from_user.id)
         await add_message_to_dl(message.message_id, message.from_user.id)
+
+@dp.message_handler(state = States.name)
+async def add_name(message : types.Message,state:FSMContext):
+     users_db.update_name(message.from_user.id, message.text)
+     if await check_full_fields(message) == True:
+        await show_succ_message(message, state = state)
+
+@dp.message_handler(state = States.surname)
+async def add_surname(message : types.Message,state:FSMContext):
+     users_db.update_surname(message.from_user.id, message.text)
+     if await check_full_fields(message) == True:
+        await show_succ_message(message, state = state)
+
+@dp.message_handler(state = States.date)
+async def add_date(message : types.Message,state:FSMContext):
+     users_db.update_date(message.from_user.id, message.text)
+     if await check_full_fields(message) == True:
+        await show_succ_message(message, state = state)
+
+@dp.message_handler(state = States.gender)
+async def add_gender(message : types.Message,state:FSMContext):
+     users_db.update_gender(message.from_user.id, message.text)
+     if await check_full_fields(message) == True:
+        await show_succ_message(message, state = state)
+
+
 
 @dp.message_handler()
 async def bot_message(message : types.Message):
@@ -116,7 +187,7 @@ async def process_return_callback(callback_query: types.CallbackQuery):
     offer_id = callback_query.data.split('::')[1]
     await dp.storage.update_data(user = tg_id, offer_id = offer_id)
     
-    await bot.send_message(callback_query.from_user.id, "Введите ссылку на сторис:")
+    await bot.send_message(callback_query.from_user.id, "Введите ссылку на сторис/пост:")
     await Req_states.link.set()
 
 @dp.message_handler(state = Req_states.link)
@@ -140,6 +211,14 @@ async def upload_pic(message : types.Message,state:FSMContext):
     story_link = state_data.get('link')
 
     requests_db.add_request(tg_id, login, offer_id, story_link, file_id)
+    try:
+        users_db.del_user_offer(tg_id, offer_id)
+    except:
+        await bot.send_message(message.from_user.id, "Ошибка")
+        await state.finish()
+
+    await bot.send_message(message.from_user.id, "Успешно")
+
 
     await state.finish()
 
@@ -147,13 +226,14 @@ async def upload_pic(message : types.Message,state:FSMContext):
 @dp.callback_query_handler(lambda c: 'sale_btn' in c.data)
 async def process_callback_button1(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
-    offer_id = int(callback_query.data.replace("sale_btn", ""))
+    callback_data = callback_query.data.split('::')
+    offer_id = callback_data[1]
     if offers_db.check_views_limit(offer_id) and not str(offer_id) in users_db.get_offers_taken(callback_query.from_user.id):
         users_db.add_offer(offer_id, callback_query.from_user.id)
         offers_db.increment_views(offer_id)
         await bot.send_message(callback_query.from_user.id, "Вы успешно заняли место")
 
-        menu = get_two_btn_menu("Мои регистрации", "profile_btn" + str(offer_id), "Подробнее", "btn" + str(offer_id))
+        menu = get_two_btn_menu("Мои регистрации", "profile_btn::" + str(offer_id), "Подробнее", "more_btn::" + str(offer_id) + "::" + str(callback_query.message.message_id)+ "::" + str(callback_query.message.chat.id) + "::" +"reg")
 
         await callback_query.message.edit_text("<b>" + callback_query.message.text + "</b>", reply_markup = menu, parse_mode = "HTML")
 
@@ -166,6 +246,28 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
         """
             Кнопки для обновления
         """
+
+@dp.callback_query_handler(lambda c: 'more_btn' in c.data)
+async def show_more_info(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id)
+    callback_data = callback_query.data.split('::')
+    offer_id = callback_data[1]
+    btn_id = callback_data[4]
+    btn1 = nav.get_inline_btn(btn_id, offer_id)
+    menu = InlineKeyboardMarkup().add(btn1)
+    bus_name = offers_db.get_business_name(offers_db.get_business_id(offer_id))
+    offer = offers_db.get_info(offer_id)
+    views_left = str(int(offer['views_limit']) - int(offer['views']))
+    result = '<b>' + offer['theme'] + '</b>' + '\n'
+    result += "Организатор: "+ bus_name + '\n'
+    result += offer['text'] + '\n'
+    result += "Начало: " '<i>'+offer['start_date'] + ' ' + offer['start_time'] + '</i>' '\n'
+    result += "Конец: " '<i>'+offer['finish_date'] + ' ' + offer['end_time'] + '</i>' '\n'
+    result += "Осталось мест: "+views_left+ '\n'
+    try:
+        await callback_query.message.edit_text(result, reply_markup = menu, parse_mode = "HTML")
+    except MessageNotModified:
+        pass
 
 
 

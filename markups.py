@@ -8,6 +8,31 @@ def get_two_btn_menu(text1, callback_data1, text2, callback_data2):
     return menu
 
 
+inline_btn_switch = {
+    'reg' :{
+        'text' : 'Мои регистрации',
+        'callback_header': 'profile_btn::' 
+    },
+    'ret':{
+        'text' : 'Получить деньги',
+        'callback_header': 'return::' 
+
+    },
+    'sale':{
+        'text' : 'Получить скидку',
+        'callback_header': 'sale_btn::' 
+
+    }
+}
+
+
+def get_inline_btn(b_id, offer_id):
+    btn_data = inline_btn_switch[b_id]
+    btn = InlineKeyboardButton(btn_data['text'], callback_data = btn_data['callback_header']+offer_id)
+    return btn
+    
+
+
 
 more_info_btn = InlineKeyboardButton(text = "Подробнее", callback_data = "btn1")
 sale_btn = InlineKeyboardButton("Получить скидку", callback_data = "sale_btn")
@@ -24,7 +49,7 @@ main_menu = ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True
 offers_taken_btn = KeyboardButton("☑️ Зарегистрированные")
 offers_processing_btn = KeyboardButton("⏳ В обработке")
 offers_done_btn = KeyboardButton("💲 Завершённые")
-profile_menu = ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True, row_width = 2).add(offers_taken_btn, offers_processing_btn, offers_done_btn)
+profile_menu = ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True, row_width = 2).add(new_offers_btn, offers_taken_btn, offers_processing_btn, offers_done_btn)
 
 admin_req_btn = KeyboardButton("⏳ Запросы")
 support_btn = KeyboardButton("👤 Поддержка")
@@ -35,5 +60,10 @@ login_menu = ReplyKeyboardMarkup(resize_keyboard = True).add(login_button)
 
 
 empty_mkp = ReplyKeyboardMarkup()
+
+#btn1 = InlineKeyboardButton("Мои регистрации", callback_data = "profile_btn" + str(offer_id))
+#menu = InlineKeyboardMarkup().add(btn1)
+
+
 
 

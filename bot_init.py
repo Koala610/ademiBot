@@ -12,6 +12,9 @@ from states import States
 from profile_state import Profile_states
 from requests_states import Req_states
 
+
+from aiogram.utils.exceptions import MessageNotModified
+from aiogram.types.message import Message
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.dispatcher.filters import Command
 from aiogram.dispatcher import FSMContext

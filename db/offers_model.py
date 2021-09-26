@@ -10,6 +10,23 @@ class Offers_model:
         result = self.cursor.execute(f"SELECT offers.id, b.name, offers.start_date, offers.finish_date  FROM offers INNER JOIN businesses b on offers.bus_id = b.id WHERE offers.category = ?",(category,)).fetchall()
         return result
 
+    def get_info(self, id):
+        result = self.cursor.execute(f"SELECT * FROM offers WHERE id = ? ",(id,)).fetchall()
+        result = result[0]
+        return {
+        "id" : result[0],
+        'theme' : result[1],
+        'text' : result[2],
+        'category' : result[3],
+        'start_date': result[4],
+        'finish_date' : result[5],
+        'start_time': result[6],
+        'end_time': result[7],
+        'bus_id': result[8],
+        'views_limit': result[9],
+        'views': result[10],
+        }
+
     def check_views_limit(self, id):
         views = self.cursor.execute(f"SELECT views_count FROM offers WHERE id = ?",(id, )).fetchall()
         views_limit = self.cursor.execute(f"SELECT views_limit FROM offers WHERE id = ?",(id, )).fetchall()
@@ -44,7 +61,7 @@ class Offers_model:
 
 def main():
     db = Offers_model('1.db')
-    print(db.get_offers(1000))
+    print(db.get_business_name(2))
 
 if __name__ == '__main__':
     main()
