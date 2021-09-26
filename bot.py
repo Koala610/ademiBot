@@ -204,12 +204,9 @@ async def enter_link(message : types.Message,state:FSMContext):
         await bot.send_message(message.from_user.id, "Это не ссылка", reply_markup = nav.exit_menu)
     
 
+
 @dp.message_handler(content_types=['photo'], state = Req_states.picture)
 async def upload_pic(message : types.Message,state:FSMContext):
-    if message.text == "🚪 Выйти":
-        await state.finish()
-        await bot.send_message(message.from_user.id, "Успешно", reply_markup= nav.profile_menu)
-        return 1
     tg_id = message.from_user.id
     login = users_db.get_login(tg_id)
     mem_data = await dp.storage.get_data(user = message.from_user.id)
@@ -229,6 +226,13 @@ async def upload_pic(message : types.Message,state:FSMContext):
 
 
     await state.finish()
+
+@dp.message_handler(state = Req_states.picture)
+async def upload_pic1(message : types.Message,state:FSMContext):
+    if message.text == "🚪 Выйти":
+        await state.finish()
+        await bot.send_message(message.from_user.id, "Успешно", reply_markup= nav.profile_menu)
+        return 1
 
 
 @dp.callback_query_handler(lambda c: 'sale_btn' in c.data)
