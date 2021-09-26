@@ -29,6 +29,12 @@ class SQLighter:
         except IndexError:
             return result
 
+    def get_users_ids(self):
+        result = self.cursor.execute("SELECT tg_id FROM models").fetchall()
+        result = [tg_id[0] for tg_id in result if tg_id[0] != '']
+
+        return result
+
     def get_info(self, tg_id):
         result = self.cursor.execute(f"SELECT * FROM models WHERE tg_id = ?",(tg_id, )).fetchall()
         return result[0]
@@ -75,6 +81,10 @@ class SQLighter:
         result = self.cursor.execute(f"UPDATE models SET offers_taken = ? WHERE tg_id = ?",(offers_taken, str(tg_id), ))
         self.commit()
 
+    def add_chat_id(self, tg_id, chat_id):
+        result = self.cursor.execute(f"UPDATE models SET chat_id = ? WHERE tg_id = ?",(chat_id, tg_id, ))
+        self.commit()
+
     def get_offers_taken(self, tg_id):
         offers_taken_dict = self.cursor.execute(f"SELECT offers_taken FROM models WHERE tg_id = ? ",(tg_id,)).fetchall()
         try:
@@ -84,7 +94,7 @@ class SQLighter:
         except IndexError:
             return "tg_id doesn't exist"
 
-        offers_len = len(offers_list)-1
+        offers_len = len(offers_list)
         offers_list = [l for l in offers_list[:offers_len] if l != '']
         if len(offers_list) == 1 and offers_list[0] == '':
             return []

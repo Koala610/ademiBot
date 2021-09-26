@@ -23,15 +23,8 @@ async def show_offers_taken(src):
     offers_list = users_db.get_offers_taken(src.from_user.id)
     if len(offers_list) == 0:
         bot.send_message(src.from_user.id, "Пусто")
-    for offer in offers_list:
-        bus_id = offers_db.get_business_id(offer)
-        bus_name = offers_db.get_business_name(bus_id)
-        msg_id = str(src.message_id) if type(src) == Message else str(src.message.message_id)
-        chat_id = str(src.chat.id) if type(src) == Message else str(src.message.chat.id)
-        menu = get_two_btn_menu("Получить деньги","return::" + str(offer), "Подробнее", "more_btn::" + str(offer) + "::" + msg_id + "::" + chat_id +"::ret")
-        result = "<b>Заведение: %s </b>"%(bus_name) + "\n"
-        result += "<b>ID заказа: %s </b>"%(offer)
-        await bot.send_message(src.from_user.id, result, reply_markup = menu,  parse_mode ='HTML')
+
+    await show_offers(src, offers_list, 'ret')
     
 
 
@@ -62,17 +55,33 @@ def check_cur_offers(src, category_id, cur_offers = None, return_bool = False):
 
 async def show_new_offers(src):
     category_id = CATEGORIES[src.text]['id']
-    cur_offers = []
-    cur_offers = check_cur_offers(src = src, cur_offers = cur_offers, category_id = category_id)
+    cur_offers = [offer[0] for offer in check_cur_offers(src = src, cur_offers = [], category_id = category_id)]
+    is_message = True if (type(src) == Message) else False
+
+    print(cur_offers)
 
     await bot.send_message(src.from_user.id, "Список преложений:")
     if len(cur_offers) > 0:
-        for offer in cur_offers:
-            menu = get_two_btn_menu("Получить скидку", "sale_btn::" + str(offer[0]), "Подробнее", "more_btn::" + str(offer[0]) + "::" + str(src.message_id)+ "::" + str(src.chat.id) +"::sale")
-            result = "<b>Заведение: %s </b>"%(offer[1])
-            await bot.send_message(src.from_user.id, result, reply_markup = menu, parse_mode ='HTML')
+        await show_offers(src, cur_offers, 'sale')
     else:
-        await bot.send_message(src.from_user.id, "Список пуст")    
+        await bot.send_message(src.from_user.id, "Список пуст") 
+
+async def show_offers(src, offers, cb_header, exist_filter = False):
+    inl_btn = list(nav.inline_btn_switch[cb_header].values())
+    cnt = 0
+    for offer in offers:
+        if exist_filter and str(offer) in users_db.get_offers_taken(src.from_user.id):
+            continue
+
+        bus_name = offers_db.get_business_name(offers_db.get_business_id(offer))
+        msg_id = str(src.message_id) if type(src) == Message else str(src.message.message_id)
+        user_id = src.from_user.id
+        menu = get_two_btn_menu(inl_btn[0], inl_btn[1] + str(offer), "Подробнее", "more_btn::" + str(offer) + "::" + msg_id + "::" + str(user_id) +inl_btn[2])
+        result = "<b>Заведение: %s </b>"%(bus_name) + "\n"
+        result += "<b>ID заказа: %s </b>"%(offer)
+        await bot.send_message(user_id, result, reply_markup = menu,  parse_mode ='HTML')
+        cnt+= 1
+    return cnt
 
 
 async def get_requests(src, status = None):
@@ -147,6 +156,12 @@ async def show_admin_reqs(src):
     else:
         bot.send_message(src.from_user.id, "У вас нет доступа к этому разделу...")
 
+async def show_notification_panel(src):
+    if admins_db.check_if_exists(src.from_user.id):
+        await bot.send_message(src.from_user.id, "Выберите действие:", reply_markup = nav.not_menu)
+    else:
+        bot.send_message(src.from_user.id, "У вас нет доступа к этому разделу...")
+
 async def show_support_win(src):
     if admins_db.check_if_exists(src.from_user.id):
         await bot.send_message(src.from_user.id, "Админ")
@@ -159,3 +174,33 @@ async def show_proccessing_reqs(src):
 async def show_finished_reqs(src):
     await get_requests(src, status = 1)
     await get_requests(src, status = -1)
+
+
+async def send_broadcast_notification(src):
+    await bot.send_message(src.from_user.id, "Введите IDs, разделённые знаком '/'")
+    await Notification_states.id_obtain.set()
+
+async def send_multicast_notification(src):
+    pass
+
+async def check_full_fields(src, func = None, text = None):
+    if func != None:
+        await func(src.from_user.id, text)
+    optional_info = users_db.get_optional_info(src.from_user.id)
+    length = len(optional_info)
+    for i in range(length):
+        if optional_info[i] == None:
+            await bot.send_message(src.from_user.id, "Введите " + states_switch[i]['name'] + ":" )
+            await states_switch[i]["state"].set()
+            return False
+    return True
+
+async def show_succ_message(src, state = None, is_new = True):
+    if is_new:
+        users_db.make_old(src.from_user.id)
+    await bot.send_message(src.from_user.id, "Вы успешно вошли!")
+    await bot.send_message(src.from_user.id, "Добро пожаловать!")
+    await show_profile(src = src)
+    if state != None:
+        await state.finish()
+    await dp.storage.close()

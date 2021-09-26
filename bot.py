@@ -21,7 +21,11 @@ command_switch = {
     "👤 Поддержка": show_support_win,
     "☑️ Зарегистрированные": show_offers_taken,
     "⏳ В обработке": show_proccessing_reqs,
-    "💲 Завершённые": show_finished_reqs
+    "💲 Завершённые": show_finished_reqs,
+    "🔔 Уведомления": show_notification_panel,
+    "/notification": show_notification_panel,
+    "📢 Отправить всем": send_broadcast_notification,
+    "📢 Отправить по категориям": send_multicast_notification,
 }
 
 
@@ -85,27 +89,6 @@ states_switch = {
     },
 }
 
-async def check_full_fields(src, func = None, text = None):
-    if func != None:
-        await func(src.from_user.id, text)
-    optional_info = users_db.get_optional_info(src.from_user.id)
-    length = len(optional_info)
-    for i in range(length):
-        if optional_info[i] == None:
-            await bot.send_message(src.from_user.id, "Введите " + states_switch[i]['name'] + ":" )
-            await states_switch[i]["state"].set()
-            return False
-    return True
-
-async def show_succ_message(src, state = None, is_new = True):
-    if is_new:
-        users_db.make_old(src.from_user.id)
-    await bot.send_message(src.from_user.id, "Вы успешно вошли!")
-    await bot.send_message(src.from_user.id, "Добро пожаловать!")
-    await show_profile(src = src)
-    if state != None:
-        await state.finish()
-    await dp.storage.close()
 
 @dp.message_handler(state = States.password)
 async def add_password(message : types.Message,state:FSMContext):
@@ -158,6 +141,35 @@ async def add_gender(message : types.Message,state:FSMContext):
      if await check_full_fields(message) == True:
         await show_succ_message(message, state = state)
 
+@dp.message_handler(state = Notification_states.message_state)
+async def add_notif_message(message : types.Message,state:FSMContext):
+    state_data = await state.get_data()
+    offers_ids = state_data.get('ids')
+    msg = message.text
+    user_ids = users_db.get_users_ids()
+    detais_btn = InlineKeyboardButton("Детали", callback_data = "details_btn::"+offers_ids)
+    detais_menu = InlineKeyboardMarkup().add(detais_btn)
+    for user_id in user_ids:
+        await bot.send_message(chat_id = user_id, text = msg, reply_markup = detais_menu)
+    await bot.send_message(message.from_user.id, "Успешно", reply_markup = nav.admin_menu)
+    await state.finish()
+
+@dp.message_handler(state = Notification_states.id_obtain)
+async def add_ids(message : types.Message,state:FSMContext):
+    await bot.send_message(message.from_user.id, "Введите сообщение:")
+    await state.update_data(ids = message.text)
+    await Notification_states.message_state.set()
+
+@dp.callback_query_handler(lambda c: 'details_btn' in c.data)
+async def process_callback_details_btn(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id)
+    callback_data = callback_query.data
+    offers_ids = callback_data.split("::")[1].split('/')
+    if await show_offers(callback_query, offers_ids, 'sale', exist_filter = True) == 0:
+        await bot.send_message(callback_query.from_user.id, "К сожалению, ничего(", reply_markup = nav.admin_menu)
+    else:
+        await bot.send_message(callback_query.from_user.id, "...", reply_markup = nav.admin_menu)
+
 
 
 @dp.message_handler()
@@ -177,12 +189,14 @@ async def bot_message(message : types.Message):
 
 @dp.callback_query_handler(lambda c: 'profile_btn' in c.data)
 async def process_callback_profile_btn(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id)
     await bot.send_message(callback_query.from_user.id, "...", reply_markup = nav.profile_menu)
     await show_offers_taken(callback_query)
 
 
 @dp.callback_query_handler(lambda c: 'return' in c.data)
 async def process_return_callback(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id)
     tg_id = callback_query.from_user.id
     offer_id = callback_query.data.split('::')[1]
     await dp.storage.update_data(user = tg_id, offer_id = offer_id)

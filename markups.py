@@ -11,16 +11,19 @@ def get_two_btn_menu(text1, callback_data1, text2, callback_data2):
 inline_btn_switch = {
     'reg' :{
         'text' : 'Мои регистрации',
-        'callback_header': 'profile_btn::' 
+        'callback_header': 'profile_btn::',
+        'short_header': '::reg'
     },
     'ret':{
         'text' : 'Получить деньги',
-        'callback_header': 'return::' 
+        'callback_header': 'return::',
+        'short_header': '::ret'
 
     },
     'sale':{
         'text' : 'Получить скидку',
-        'callback_header': 'sale_btn::' 
+        'callback_header': 'sale_btn::',
+        'short_header': '::sale'
 
     }
 }
@@ -51,15 +54,25 @@ offers_processing_btn = KeyboardButton("⏳ В обработке")
 offers_done_btn = KeyboardButton("💲 Завершённые")
 profile_menu = ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True, row_width = 2).add(new_offers_btn, offers_taken_btn, offers_processing_btn, offers_done_btn)
 
+
 admin_req_btn = KeyboardButton("⏳ Запросы")
+notification_btn = KeyboardButton("🔔 Уведомления")
 support_btn = KeyboardButton("👤 Поддержка")
-admin_menu = ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True, row_width = 2).add(admin_req_btn, support_btn)
+admin_menu = ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True, row_width = 2).add(admin_req_btn, notification_btn, support_btn)
+
+
+broadcast_btn = KeyboardButton("📢 Отправить всем")
+cat_multicast_btn = KeyboardButton("📢 Отправить по категориям")
+not_menu = ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True, row_width = 2).add(broadcast_btn)
 
 login_button = KeyboardButton("🚪 Войти")
 login_menu = ReplyKeyboardMarkup(resize_keyboard = True).add(login_button)
 
 exit_button = KeyboardButton("🚪 Выйти")
 exit_menu = ReplyKeyboardMarkup(resize_keyboard = True).add(exit_button)
+
+
+
 
 
 empty_mkp = ReplyKeyboardMarkup()
