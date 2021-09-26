@@ -194,7 +194,7 @@ async def process_return_callback(callback_query: types.CallbackQuery):
 async def enter_link(message : types.Message,state:FSMContext):
     if message.text == "🚪 Выйти":
         await state.finish()
-        await bot.send_message(message.from_user.id, "Успешно", reply_menu= nav.profile_menu)
+        await bot.send_message(message.from_user.id, "Успешно", reply_markup= nav.profile_menu)
         return 1
     if "instagram.com/stories" in message.text or "instagram.com/p" in message.text: 
         await state.update_data(link = message.text)
@@ -208,7 +208,7 @@ async def enter_link(message : types.Message,state:FSMContext):
 async def upload_pic(message : types.Message,state:FSMContext):
     if message.text == "🚪 Выйти":
         await state.finish()
-        await bot.send_message(message.from_user.id, "Успешно", reply_menu= nav.profile_menu)
+        await bot.send_message(message.from_user.id, "Успешно", reply_markup= nav.profile_menu)
         return 1
     tg_id = message.from_user.id
     login = users_db.get_login(tg_id)
