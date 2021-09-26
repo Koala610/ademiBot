@@ -85,7 +85,9 @@ class SQLighter:
             return "tg_id doesn't exist"
 
         offers_len = len(offers_list)-1
-        offers_list = offers_list[:offers_len]
+        offers_list = [l for l in offers_list[:offers_len] if l != '']
+        if len(offers_list) == 1 and offers_list[0] == '':
+            return []
         return offers_list
 
     def replace_offers(self, tg_id, offers):
@@ -111,7 +113,7 @@ class SQLighter:
 
 def main():
     db = SQLighter("1.db")
-    print(db.user_exists('Koala610'))
+    print(db.get_offers_taken(335271283))
 
 if __name__ == '__main__':
     main()

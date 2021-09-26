@@ -21,6 +21,8 @@ async def exit_state(state):
 async def show_offers_taken(src):
     await bot.send_message(src.from_user.id, "Ваши регистрации")
     offers_list = users_db.get_offers_taken(src.from_user.id)
+    if len(offers_list) == 0:
+        bot.send_message(src.from_user.id, "Пусто")
     for offer in offers_list:
         bus_id = offers_db.get_business_id(offer)
         bus_name = offers_db.get_business_name(bus_id)

@@ -198,11 +198,27 @@ async def enter_link(message : types.Message,state:FSMContext):
         return 1
     if "instagram.com/stories" in message.text or "instagram.com/p" in message.text: 
         await state.update_data(link = message.text)
-        await bot.send_message(message.from_user.id, "Отправьте фото чека:", reply_markup = nav.exit_menu)
-        await Req_states.picture.set()
+        await bot.send_message(message.from_user.id, "Отправьте скриншот перевода:", reply_markup = nav.exit_menu)
+        await Req_states.picture2.set()
     else:
         await bot.send_message(message.from_user.id, "Это не ссылка", reply_markup = nav.exit_menu)
     
+
+@dp.message_handler(content_types=['photo'], state = Req_states.picture2)
+async def upload_pic2(message : types.Message,state:FSMContext):
+    tg_id = message.from_user.id
+    file_id = message.photo[-1].file_id
+    await state.update_data(trans_pic = file_id)
+    await bot.send_message(message.from_user.id, "Отправьте фото чека...", reply_markup = nav.exit_menu)
+    await Req_states.picture.set()
+
+@dp.message_handler(state = Req_states.picture2)
+async def upload_pic_text2(message : types.Message,state:FSMContext):
+    if message.text == "🚪 Выйти":
+        await state.finish()
+        await bot.send_message(message.from_user.id, "Успешно", reply_markup= nav.profile_menu)
+        return 1
+
 
 
 @dp.message_handler(content_types=['photo'], state = Req_states.picture)
@@ -214,21 +230,21 @@ async def upload_pic(message : types.Message,state:FSMContext):
     file_id = message.photo[-1].file_id
     state_data = await state.get_data()
     story_link = state_data.get('link')
-
-    requests_db.add_request(tg_id, login, offer_id, story_link, file_id)
+    trans_pic = state_data.get('trans_pic')
+    requests_db.add_request(tg_id, login, offer_id, story_link, file_id, trans_pic)
     try:
         users_db.del_user_offer(tg_id, offer_id)
     except:
         await bot.send_message(message.from_user.id, "Ошибка")
         await state.finish()
 
-    await bot.send_message(message.from_user.id, "Успешно")
+    await bot.send_message(message.from_user.id, "Успешно", reply_markup = nav.profile_menu)
 
 
     await state.finish()
 
 @dp.message_handler(state = Req_states.picture)
-async def upload_pic1(message : types.Message,state:FSMContext):
+async def upload_pic_text(message : types.Message,state:FSMContext):
     if message.text == "🚪 Выйти":
         await state.finish()
         await bot.send_message(message.from_user.id, "Успешно", reply_markup= nav.profile_menu)
@@ -240,24 +256,27 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
     callback_data = callback_query.data.split('::')
     offer_id = callback_data[1]
+    num_id = 0
+    try:
+        num_id = callback_data[2]
+    except:
+        pass
     if offers_db.check_views_limit(offer_id) and not str(offer_id) in users_db.get_offers_taken(callback_query.from_user.id):
         users_db.add_offer(offer_id, callback_query.from_user.id)
         offers_db.increment_views(offer_id)
-        await bot.send_message(callback_query.from_user.id, "Вы успешно заняли место")
+        await bot.send_message(callback_query.from_user.id, "Вы успешно заняли место", reply_markup = nav.profile_menu)
 
-        menu = get_two_btn_menu("Мои регистрации", "profile_btn::" + str(offer_id), "Подробнее", "more_btn::" + str(offer_id) + "::" + str(callback_query.message.message_id)+ "::" + str(callback_query.message.chat.id) + "::" +"reg")
+        if num_id != '2':
+            menu = get_two_btn_menu("Мои регистрации", "profile_btn::" + str(offer_id), "Подробнее", "more_btn::" + str(offer_id) + "::" + str(callback_query.message.message_id)+ "::" + str(callback_query.message.chat.id) + "::" +"reg")
+        elif num_id == '2':
+            reg_btn = InlineKeyboardButton("Мои регистрации", callback_data = "profile_btn::" + str(offer_id))
+            menu = InlineKeyboardMarkup().add(reg_btn)
+        await callback_query.message.edit_text(callback_query.message.text, reply_markup = menu, parse_mode = "HTML")
 
-        await callback_query.message.edit_text("<b>" + callback_query.message.text + "</b>", reply_markup = menu, parse_mode = "HTML")
-
-        """
-            Переход на личные предложения
-        """
 
     else:
         await bot.send_message(callback_query.from_user.id, "К сожалению, мест нет")
-        """
-            Кнопки для обновления
-        """
+
 
 @dp.callback_query_handler(lambda c: 'more_btn' in c.data)
 async def show_more_info(callback_query: types.CallbackQuery):
@@ -265,7 +284,7 @@ async def show_more_info(callback_query: types.CallbackQuery):
     callback_data = callback_query.data.split('::')
     offer_id = callback_data[1]
     btn_id = callback_data[4]
-    btn1 = nav.get_inline_btn(btn_id, offer_id)
+    btn1 = nav.get_inline_btn(btn_id, offer_id, num = 2)
     menu = InlineKeyboardMarkup().add(btn1)
     bus_name = offers_db.get_business_name(offers_db.get_business_id(offer_id))
     offer = offers_db.get_info(offer_id)

@@ -26,9 +26,9 @@ inline_btn_switch = {
 }
 
 
-def get_inline_btn(b_id, offer_id):
+def get_inline_btn(b_id, offer_id, num = None):
     btn_data = inline_btn_switch[b_id]
-    btn = InlineKeyboardButton(btn_data['text'], callback_data = btn_data['callback_header']+offer_id)
+    btn = InlineKeyboardButton(btn_data['text'], callback_data = btn_data['callback_header']+offer_id) if num == None else InlineKeyboardButton(btn_data['text'], callback_data = btn_data['callback_header']+offer_id+"::"+str(num))
     return btn
     
 

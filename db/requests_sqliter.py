@@ -5,8 +5,8 @@ class Request_sqliter:
 		self.connection = sqlite3.connect(database_file)
 		self.cursor = self.connection.cursor()
 
-	def add_request(self, tg_id, login, offer_id, story_link, file_id):
-		result = self.cursor.execute(f"INSERT INTO requests (tg_id, login, offer_id, story_link, photo_check_id) VALUES(?, ?, ?, ?, ?)",(tg_id, login, offer_id, story_link, file_id))
+	def add_request(self, tg_id, login, offer_id, story_link, file_id, trans_photo_id):
+		result = self.cursor.execute(f"INSERT INTO requests (tg_id, login, offer_id, story_link, photo_check_id, trans_photo_id) VALUES(?, ?, ?, ?, ?, ?)",(tg_id, login, offer_id, story_link, file_id, trans_photo_id))
 		self.commit()
 
 	def get_all_requests(self):

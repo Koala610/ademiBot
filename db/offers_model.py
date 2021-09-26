@@ -61,7 +61,7 @@ class Offers_model:
 
 def main():
     db = Offers_model('1.db')
-    print(db.get_business_name(2))
+    print(db.get_business_id(2))
 
 if __name__ == '__main__':
     main()
