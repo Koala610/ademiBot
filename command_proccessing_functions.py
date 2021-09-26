@@ -13,6 +13,9 @@ async def show_menu(src, text):
         main_menu.add(admin_panel_btn)
     await bot.send_message(tg_id, text, reply_markup = main_menu)
 
+async def exit_state(state):
+    await state.finish()
+
 
 
 async def show_offers_taken(src):

@@ -58,6 +58,9 @@ admin_menu = ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = Tru
 login_button = KeyboardButton("🚪 Войти")
 login_menu = ReplyKeyboardMarkup(resize_keyboard = True).add(login_button)
 
+exit_button = KeyboardButton("🚪 Выйти")
+exit_menu = ReplyKeyboardMarkup(resize_keyboard = True).add(exit_button)
+
 
 empty_mkp = ReplyKeyboardMarkup()
 

@@ -187,21 +187,27 @@ async def process_return_callback(callback_query: types.CallbackQuery):
     offer_id = callback_query.data.split('::')[1]
     await dp.storage.update_data(user = tg_id, offer_id = offer_id)
     
-    await bot.send_message(callback_query.from_user.id, "Введите ссылку на сторис/пост:")
+    await bot.send_message(callback_query.from_user.id, "Введите ссылку на сторис/пост:", reply_markup = nav.exit_menu)
     await Req_states.link.set()
 
 @dp.message_handler(state = Req_states.link)
 async def enter_link(message : types.Message,state:FSMContext):
+    if message.text == "🚪 Выйти":
+        await state.finish()
+        return 1
     if "instagram.com/stories" in message.text or "instagram.com/p" in message.text: 
         await state.update_data(link = message.text)
-        await bot.send_message(message.from_user.id, "Отправьте фото чека:")
+        await bot.send_message(message.from_user.id, "Отправьте фото чека:", reply_markup = nav.exit_menu)
         await Req_states.picture.set()
     else:
-        await bot.send_message(message.from_user.id, "Это не ссылка")
+        await bot.send_message(message.from_user.id, "Это не ссылка", reply_markup = nav.exit_menu)
     
 
 @dp.message_handler(content_types=['photo'], state = Req_states.picture)
 async def upload_pic(message : types.Message,state:FSMContext):
+    if message.text == "🚪 Выйти":
+        await state.finish()
+        return 1
     tg_id = message.from_user.id
     login = users_db.get_login(tg_id)
     mem_data = await dp.storage.get_data(user = message.from_user.id)
