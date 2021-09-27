@@ -141,14 +141,20 @@ async def add_gender(message : types.Message,state:FSMContext):
      if await check_full_fields(message) == True:
         await show_succ_message(message, state = state)
 
+
+
+
 @dp.message_handler(state = Notification_states.message_state)
 async def add_notif_message(message : types.Message,state:FSMContext):
     state_data = await state.get_data()
     offers_ids = state_data.get('ids')
     msg = message.text
     user_ids = users_db.get_users_ids()
-    detais_btn = InlineKeyboardButton("Детали", callback_data = "details_btn::"+offers_ids)
-    detais_menu = InlineKeyboardMarkup().add(detais_btn)
+    detais_menu = InlineKeyboardMarkup()
+    if offers_ids != '-1':
+        detais_btn = InlineKeyboardButton("Детали", callback_data = "details_btn::"+offers_ids)
+        detais_menu.add(detais_btn)
+    
     for user_id in user_ids:
         await bot.send_message(chat_id = user_id, text = msg, reply_markup = detais_menu)
     await bot.send_message(message.from_user.id, "Успешно", reply_markup = nav.admin_menu)
@@ -156,8 +162,15 @@ async def add_notif_message(message : types.Message,state:FSMContext):
 
 @dp.message_handler(state = Notification_states.id_obtain)
 async def add_ids(message : types.Message,state:FSMContext):
+    offers_ids_list = message.text.split('/')
+    offers_ids_list = [offer_id for offer_id in offers_ids_list if check_if_offer_exist(offer_id)]
+    offers_ids = '/'.join(offers_ids_list)
+
+    if len(offers_ids_list) == 0:
+        await bot.send_message(message.from_user.id, "Ошибка... ID не найдены. Повторите")
+        return -1
     await bot.send_message(message.from_user.id, "Введите сообщение:")
-    await state.update_data(ids = message.text)
+    await state.update_data(ids = offers_ids)
     await Notification_states.message_state.set()
 
 @dp.callback_query_handler(lambda c: 'details_btn' in c.data)
@@ -165,10 +178,17 @@ async def process_callback_details_btn(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
     callback_data = callback_query.data
     offers_ids = callback_data.split("::")[1].split('/')
-    if await show_offers(callback_query, offers_ids, 'sale', exist_filter = True) == 0:
-        await bot.send_message(callback_query.from_user.id, "К сожалению, ничего(", reply_markup = nav.admin_menu)
+    try:
+        offers_cnt = await show_offers(callback_query, offers_ids, 'sale', exist_filter = True)
+    except:
+        await bot.send_message(callback_query.from_user.id, "Ошибка... Номер заказа не определён", reply_markup = nav.profile_menu)
+        return -1
+    if offers_cnt == 0:
+        await bot.send_message(callback_query.from_user.id, "К сожалению, ничего(", reply_markup = nav.profile_menu)
+    elif offers_cnt == -1:
+        await bot.send_message(callback_query.from_user.id, "Ошибка", reply_markup = nav.profile_menu)
     else:
-        await bot.send_message(callback_query.from_user.id, "...", reply_markup = nav.admin_menu)
+        await bot.send_message(callback_query.from_user.id, "...", reply_markup = nav.profile_menu)
 
 
 

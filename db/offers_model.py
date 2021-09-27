@@ -27,6 +27,11 @@ class Offers_model:
         'views': result[10],
         }
 
+    def get_all_ids(self):
+        result = [id[0] for id in self.cursor.execute("SELECT id FROM offers").fetchall()]
+        return result
+
+
     def check_views_limit(self, id):
         views = self.cursor.execute(f"SELECT views_count FROM offers WHERE id = ?",(id, )).fetchall()
         views_limit = self.cursor.execute(f"SELECT views_limit FROM offers WHERE id = ?",(id, )).fetchall()
@@ -61,7 +66,7 @@ class Offers_model:
 
 def main():
     db = Offers_model('1.db')
-    print(db.get_business_id(2))
+    print(db.get_all_ids())
 
 if __name__ == '__main__':
     main()

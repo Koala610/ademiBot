@@ -2,6 +2,16 @@ from db_init import *
 from bot_init import *
 
 
+def check_if_offer_exist(offer_id):
+    is_exist = False
+    try:
+        is_exist = int(offer_id) in offers_db.get_all_ids()
+    except ValueError:
+        return False
+    return is_exist
+
+
+
 async def show_menu(src, text):
     tg_id = src.from_user.id
     new_offers_btn = KeyboardButton("🔍 Найти предложения")
@@ -28,6 +38,14 @@ async def show_offers_taken(src):
     
 
 
+
+def get_start_finish_date(start_text, finish_text):
+    start_date = start_text.split('/')
+    finish_date = finish_text.split('/')
+    start_date = datetime.date(int(start_date[2]), int(start_date[1]), int(start_date[0]))
+    finish_date = datetime.date(int(finish_date[2]), int(finish_date[1]), int(finish_date[0]))
+    return start_date, finish_date
+
 def check_cur_offers(src, category_id, cur_offers = None, return_bool = False):
     offers = offers_db.get_offers(category_id)
     cur_date = datetime.datetime.now().date()
@@ -37,11 +55,8 @@ def check_cur_offers(src, category_id, cur_offers = None, return_bool = False):
         if not can_be_shown:
             continue
 
-        offer_start_date = offer[2].split('/')
-        offer_finish_date = offer[3].split('/')
-        trans_start_date = datetime.date(int(offer_start_date[2]), int(offer_start_date[1]), int(offer_start_date[0]))
-        trans_finish_date = datetime.date(int(offer_finish_date[2]), int(offer_finish_date[1]), int(offer_finish_date[0]))
-        if cur_date <= trans_finish_date and cur_date >= trans_start_date and not str(offer[0]) in users_db.get_offers_taken(src.from_user.id):
+        start_date, finish_date = get_start_finish_date(offer[2], offer[3])
+        if cur_date <= finish_date and cur_date >= start_date and not str(offer[0]) in users_db.get_offers_taken(src.from_user.id):
             if return_bool:
                 is_actual = True
                 break
@@ -57,8 +72,6 @@ async def show_new_offers(src):
     category_id = CATEGORIES[src.text]['id']
     cur_offers = [offer[0] for offer in check_cur_offers(src = src, cur_offers = [], category_id = category_id)]
     is_message = True if (type(src) == Message) else False
-
-    print(cur_offers)
 
     await bot.send_message(src.from_user.id, "Список преложений:")
     if len(cur_offers) > 0:
