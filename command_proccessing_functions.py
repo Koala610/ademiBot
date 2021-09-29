@@ -32,7 +32,7 @@ async def show_offers_taken(src):
     await bot.send_message(src.from_user.id, "Ваши регистрации")
     offers_list = users_db.get_offers_taken(src.from_user.id)
     if len(offers_list) == 0:
-        bot.send_message(src.from_user.id, "Пусто")
+        await bot.send_message(src.from_user.id, "Пусто")
 
     await show_offers(src, offers_list, 'ret')
     
@@ -115,8 +115,11 @@ async def get_requests(src, status = None):
         elif status == 0:
             result += "Status: In process"
 
+        check_photo = InputMediaPhoto(media = request[5], caption = result)
+        trans_photo = InputMediaPhoto(media = request[6])
 
-        await bot.send_photo(src.chat.id, photo = request[5], caption = result)
+
+        await bot.send_media_group(src.chat.id, media = [check_photo, trans_photo])
 
 async def add_message_to_dl(message_id, user_id):
     strg = await dp.storage.get_data(user = user_id)
