@@ -335,6 +335,25 @@ async def show_more_info(callback_query: types.CallbackQuery):
         pass
 
 
+@dp.callback_query_handler(lambda c: 'status_btn' in c.data)
+async def change_req_status(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id)
+
+    callback_data = callback_query.data.split('::')
+    request_id = callback_data[1]
+    req_status = requests_db.get_request_status(request_id)
+    if req_status == 0:
+        action_id = callback_data[2]
+        requests_db.change_status(request_id, action_id)
+        await bot.send_message(callback_query.from_user.id, "Успех")
+        result_msg = "Ваш запрос был "
+        result_msg += "одобрен." if action_id == "1" else "отклонён."
+        user_id = requests_db.get_request_tg_id(request_id)
+        await bot.send_message(user_id, result_msg)
+    else:
+        await bot.send_message(callback_query.from_user.id, "Запрос уже обработан")
+
+
 
     
 

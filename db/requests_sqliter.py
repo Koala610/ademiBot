@@ -14,8 +14,22 @@ class Request_sqliter:
 		return result
 
 	def get_users_requests_by_status(self, id, status):
-		result = self.cursor.execute(f"SELECT id, tg_id, login, offer_id, story_link, photo_check_id, trans_photo_id FROM requests WHERE status = ? AND tg_id = ?",(status ,id,)).fetchall()
+		result = self.cursor.execute(f"SELECT * FROM requests WHERE status = ? AND tg_id = ?",(status ,id,)).fetchall()
 		return result
+
+	def get_request_tg_id(self, id):
+		result = self.cursor.execute(f"SELECT tg_id FROM requests WHERE id = ?",(id, )).fetchall()
+		try:
+			return result[0][0]
+		except IndexError:
+			return -1
+
+	def get_request_status(self, id):
+		result = self.cursor.execute(f"SELECT status FROM requests WHERE id = ?",(id, )).fetchall()
+		try:
+			return result[0][0]
+		except IndexError:
+			return -1
 
 
 	def get_photos_by_id(self, id):
@@ -24,6 +38,10 @@ class Request_sqliter:
 			return result[0]
 		except IndexError:
 			return -1
+
+	def change_status(self, id, status):
+		result = self.cursor.execute(f"UPDATE requests SET status = ? WHERE id = ?",(status, id))
+		self.commit()
 
 
 
@@ -37,7 +55,7 @@ class Request_sqliter:
 
 def main():
 	db = Request_sqliter('1.db')
-	print((db.get_users_requests_by_status(335271283, 0)))
+	print(db.get_request_tg_id(18))
 
 if __name__ == '__main__':
 	main()

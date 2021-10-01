@@ -99,27 +99,42 @@ async def show_offers(src, offers, cb_header, exist_filter = False):
 
 async def get_requests(src, status = None):
     requests = []
+    accept_btn = None
+    reject_btn = None
     if status == None:
         requests = requests_db.get_all_requests()
     else:
         requests = requests_db.get_users_requests_by_status(src.from_user.id, status)
 
     for request in requests:
+        menu = InlineKeyboardMarkup()
+        if status == None and request[7] == 0:
+            header1_part = "status_btn::"+str(request[0])+"::"+"1"+'::'
+            header2_part = "status_btn::"+str(request[0])+"::"+"-1"+'::'
+            callback_data1 = header1_part + str(src.message_id) if type(src) == Message else header1_part+str(src.message.message_id)
+            callback_data2 = header2_part+str(src.message_id) if type(src) == Message else header2_part+str(src.message.message_id)
+            accept_btn = InlineKeyboardButton("Принять", callback_data = callback_data1)
+            reject_btn = InlineKeyboardButton("Отклонить", callback_data = callback_data2)
+            menu.add(accept_btn, reject_btn)
+
         result = "Nickname: " + request[2] + '\n'
         result += "Offer id: " + str(request[3]) + '\n'
         result += "Business: " + offers_db.get_business_name(offers_db.get_business_id(request[3])) + '\n'
-        if status == 1:
-            result += "Status: Successfully done"
-        elif status == -1:
+        if request[7] == 1:
+            result += "Status: Accepted"
+        elif request[7] == -1:
             result += "Status: Declined"
-        elif status == 0:
+        elif request[7] == 0:
             result += "Status: In process"
 
-        check_photo = InputMediaPhoto(media = request[5], caption = result)
+        check_photo = InputMediaPhoto(media = request[5])
         trans_photo = InputMediaPhoto(media = request[6])
 
 
-        await bot.send_media_group(src.chat.id, media = [check_photo, trans_photo])
+        await bot.send_media_group(src.from_user.id, media = [check_photo, trans_photo])
+        await bot.send_message(src.from_user.id, result, reply_markup = menu)
+        del menu
+
 
 async def add_message_to_dl(message_id, user_id):
     strg = await dp.storage.get_data(user = user_id)

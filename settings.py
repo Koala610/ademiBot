@@ -1,5 +1,4 @@
-API_TOKEN = "1978667196:AAH7FnxhKPowT-bpaeBSBh8mSxvEObJwsdY"
-db_path = 'db/1.db'
+import os
 
-UNREADS_ON_PAGE = 20
-BOOKMARKS_ON_PAGE = 20
+API_TOKEN = os.getenv('API_TOKEN')
+db_path = os.getenv('db_path')
