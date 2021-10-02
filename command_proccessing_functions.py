@@ -184,19 +184,19 @@ async def show_admin_panel(src):
     if admins_db.check_if_exists(src.from_user.id):
         await bot.send_message(src.from_user.id, "...", reply_markup = nav.admin_menu)
     else:
-        bot.send_message(src.from_user.id, "У вас нет доступа к этому разделу...")
+        await bot.send_message(src.from_user.id, "У вас нет доступа к этому разделу...")
 
 async def show_admin_reqs(src):
     if admins_db.check_if_exists(src.from_user.id):
         await get_requests(src)
     else:
-        bot.send_message(src.from_user.id, "У вас нет доступа к этому разделу...")
+        await bot.send_message(src.from_user.id, "У вас нет доступа к этому разделу...")
 
 async def show_notification_panel(src):
     if admins_db.check_if_exists(src.from_user.id):
         await bot.send_message(src.from_user.id, "Выберите действие:", reply_markup = nav.not_menu)
     else:
-        bot.send_message(src.from_user.id, "У вас нет доступа к этому разделу...")
+        await bot.send_message(src.from_user.id, "У вас нет доступа к этому разделу...")
 
 async def show_support_win(src):
     if admins_db.check_if_exists(src.from_user.id):
