@@ -55,7 +55,7 @@ def check_cur_offers(src, category_id, cur_offers = None, return_bool = False):
         if not can_be_shown:
             continue
 
-        start_date, finish_date = get_start_finish_date(offer[2], offer[3])
+        start_date, finish_date = offer[2], offer[3]
         if cur_date <= finish_date and cur_date >= start_date and not str(offer[0]) in users_db.get_offers_taken(src.from_user.id):
             if return_bool:
                 is_actual = True
@@ -104,7 +104,7 @@ async def get_requests(src, status = None):
     if status == None:
         requests = requests_db.get_all_requests()
     else:
-        requests = requests_db.get_users_requests_by_status(src.from_user.id, status)
+        requests = [requests_db.get_users_requests_by_status(src.from_user.id, status)]
 
     for request in requests:
         menu = InlineKeyboardMarkup()
@@ -158,11 +158,11 @@ async def find_new_offers(src):
 
 async def show_profile(src):
     info = users_db.get_info(src.from_user.id)
-    birth_age = info[11].split('/')
+    birth_age = info[11]
     cur_month = '%02d'%(datetime.datetime.now().month)
     cur_day = '%02d'%(datetime.datetime.now().day)
     age_var1 = int(str(datetime.datetime.now().year) + cur_month + cur_day)
-    age_var2 = int(str(birth_age[2]) + '%02d'%(int(birth_age[1])) + '%02d'%(int(birth_age[0])))
+    age_var2 = int(str(birth_age.year) + '%02d'%(int(birth_age.month)) + '%02d'%(int(birth_age.day)))
     age_var_res = (str(age_var1 - age_var2))
     age = "".join(list(age_var_res)[0:2])
 
