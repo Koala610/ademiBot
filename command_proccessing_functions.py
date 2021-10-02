@@ -106,7 +106,12 @@ async def get_requests(src, status = None):
     else:
         requests = [requests_db.get_users_requests_by_status(src.from_user.id, status)]
 
+    if len(requests) == 0 or (len(requests) == 1 and len(requests[0])==0):
+        await bot.send_message(src.from_user.id, "Список пуст")
+        return -1
     for request in requests:
+        if len(request) == 0:
+            continue
         menu = InlineKeyboardMarkup()
         if status == None and request[7] == 0:
             header1_part = "status_btn::"+str(request[0])+"::"+"1"+'::'
