@@ -6,26 +6,42 @@ class SQLighter:
         self.connection = connection
         self.cursor = self.connection.cursor()
 
+    def check_connection(self, f):
+        def wrapper(*args):
+            self.connection.ping(reconnect = True, attempts = 3, delay = 2)
+            return f(*args)
+        return wrapper
+
+
+
+    @check_connection
     def select_all(self):
         self.cursor.execute("SELECT * FROM models")
         result = [list(row.values()) for row in self.cursor.fetchall()]
         return result
 
-
+    @check_connection
     def tg_id_exists(self, tg_id):
         self.cursor.execute(f"SELECT * FROM models WHERE tg_id = {tg_id}")
         result = self.cursor.fetchall()
         return bool(len(result))
 
+
+    @check_connection
     def user_exists(self, login):
         self.cursor.execute(f"SELECT * FROM models WHERE login = '{login}'")
         result = self.cursor.fetchall()
         return bool(len(result))
 
+
+    @check_connection
     def update_tg_id(self, tg_id, login):
         self.cursor.execute(f"UPDATE models SET tg_id = {tg_id} WHERE login = '{login}'")
         self.commit()
 
+
+
+    @check_connection
     def get_login(self, tg_id):
         self.cursor.execute(f"SELECT login FROM models WHERE tg_id = {tg_id}")
         result = self.cursor.fetchall()
@@ -34,6 +50,8 @@ class SQLighter:
         except IndexError:
             return []
 
+
+    @check_connection
     def get_users_ids(self):
         self.cursor.execute("SELECT tg_id FROM models")
         result = self.cursor.fetchall()
@@ -41,6 +59,8 @@ class SQLighter:
 
         return result
 
+
+    @check_connection
     def get_info(self, tg_id):
         self.cursor.execute(f"SELECT * FROM models WHERE tg_id = {tg_id}")
         result = self.cursor.fetchall()
@@ -49,9 +69,13 @@ class SQLighter:
         except IndexError:
             return []
 
+
+    @check_connection
     def get_optional_info(self, tg_id):
         return self.get_info(tg_id)[9:]
 
+
+    @check_connection
     def check_if_new(self, tg_id):
         self.cursor.execute(f"SELECT is_new FROM models WHERE tg_id = {tg_id}")
         result = self.cursor.fetchall()
@@ -60,32 +84,46 @@ class SQLighter:
         except IndexError:
             return -1
 
+
+    @check_connection
     def make_old(self, tg_id):
         self.cursor.execute(f"UPDATE models SET is_new = 0 WHERE tg_id = {tg_id}")
         self.commit()
 
+
+    @check_connection
     def update_name(self, tg_id, name):
         self.cursor.execute(f"UPDATE models SET name = '{name}' WHERE tg_id = {tg_id}")
         self.commit()
 
+
+    @check_connection
     def update_surname(self, tg_id, surname):
         self.cursor.execute(f"UPDATE models SET surname = {surname} WHERE tg_id = {tg_id}")
         self.commit()
 
+
+    @check_connection
     def update_date(self, tg_id, date):
         self.cursor.execute(f"UPDATE models SET birth_date = '{date}' WHERE tg_id = {tg_id}")
         self.commit()
 
+
+    @check_connection
     def update_gender(self, tg_id, gender):
         result = self.cursor.execute(f"UPDATE models SET isMale = {gender} WHERE tg_id = {tg_id}")
         self.commit()
 
 
+
+    @check_connection
     def password_exists(self, login, password):
         self.cursor.execute(f"SELECT * FROM models WHERE password = '{password}' AND login = '{login}'")
         result = self.cursor.fetchall()
         return bool(len(result))
 
+
+    @check_connection
     def add_offer(self, id, tg_id):
         offers_list = self.get_offers_taken(tg_id)
         try:
@@ -97,6 +135,8 @@ class SQLighter:
         offers_taken += str(id) + ","
         self.replace_offers(tg_id, offers_taken)
 
+
+    @check_connection
     def get_offers_taken(self, tg_id):
         self.cursor.execute(f"SELECT offers_taken FROM models WHERE tg_id = {tg_id}")
         offers_taken = self.cursor.fetchall()
@@ -112,11 +152,13 @@ class SQLighter:
             return []
         return offers_list
 
+
+    @check_connection
     def replace_offers(self, tg_id, offers):
         self.cursor.execute(f"UPDATE models SET offers_taken = '{offers}' WHERE tg_id = {tg_id}")
         self.commit()
 
-
+    @check_connection
     def del_user_offer(self, tg_id, offer_id):
         offers = self.get_offers_taken(tg_id)
         res_offers = [offer for offer in offers if int(offer) != int(offer_id)]
@@ -125,10 +167,7 @@ class SQLighter:
 
 
 
-
-    def close(self):
-        self.connection.close()
-
+    @check_connection
     def commit(self):
         self.connection.commit()
 
