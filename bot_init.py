@@ -8,10 +8,8 @@ import datetime
 from importlib import reload
 from markups import get_two_btn_menu
 
-from states import States
-from profile_state import Profile_states
-from requests_states import Req_states
-from notification_states import Notification_states
+from states import *
+from db import *
 
 
 from aiogram.utils.exceptions import MessageNotModified
@@ -32,6 +30,13 @@ bot = Bot(token = settings.API_TOKEN)
 dp = Dispatcher(bot, storage = storage)
 
 BOT_STORAGE_LINK = "https://api.telegram.org/file/" + settings.API_TOKEN + "/"
+
+
+
+users_db = SQLighter(settings.connection)
+offers_db = Offers_model(settings.connection)
+requests_db = Req_sql(settings.connection)
+admins_db = Admin_sqliter(settings.connection)
 
 CATEGORIES = {
     "🍍 Еда":

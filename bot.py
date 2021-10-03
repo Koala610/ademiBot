@@ -1,4 +1,3 @@
-from db_init import *
 from command_proccessing_functions import *
 from bot_init import *
 

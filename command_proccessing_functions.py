@@ -1,4 +1,3 @@
-from db_init import *
 from bot_init import *
 
 
