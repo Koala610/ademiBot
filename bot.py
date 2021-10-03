@@ -140,7 +140,7 @@ async def add_notif_message(message : types.Message,state:FSMContext):
 async def add_ids(message : types.Message,state:FSMContext):
     offers_ids_list = message.text.split('/')
     trigger = True if '-1' in offers_ids_list and len(offers_ids_list)>1 else False
-    offers_ids_list = [offer_id for offer_id in offers_ids_list if check_if_offer_exist(offer_id)]
+    offers_ids_list = list(set([offer_id for offer_id in offers_ids_list if check_if_offer_exist(offer_id)]))
     offers_ids = '/'.join(offers_ids_list) if not trigger else "-1"
     if len(offers_ids) == 0:
         await bot.send_message(message.from_user.id, "Ошибка... ID не найдены. Повторите")
@@ -154,6 +154,7 @@ async def process_callback_details_btn(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
     callback_data = callback_query.data
     offers_ids = callback_data.split("::")[1].split('/')
+    print(offers_ids)
     try:
         offers_cnt = await show_offers(callback_query, offers_ids, 'sale', exist_filter = True)
     except:

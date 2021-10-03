@@ -3,10 +3,10 @@ from bot_init import *
 
 def check_if_offer_exist(offer_id):
     try:
-        int(offer_id) in offers_db.get_all_ids()
+        is_exist = int(offer_id) in offers_db.get_all_ids()
     except ValueError:
         return False
-    return True
+    return is_exist
 
 
 
