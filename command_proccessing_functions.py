@@ -2,9 +2,8 @@ from bot_init import *
 
 
 def check_if_offer_exist(offer_id):
-    is_exist = False
     try:
-        is_exist = int(offer_id) in offers_db.get_all_ids()
+        int(offer_id) in offers_db.get_all_ids()
     except ValueError:
         return False
     return is_exist
