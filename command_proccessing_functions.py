@@ -6,7 +6,7 @@ def check_if_offer_exist(offer_id):
         int(offer_id) in offers_db.get_all_ids()
     except ValueError:
         return False
-    return is_exist
+    return True
 
 
 
