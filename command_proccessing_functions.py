@@ -53,7 +53,7 @@ def check_cur_offers(src, category_id, cur_offers = None, return_bool = False):
             continue
 
         start_date, finish_date = offer[2], offer[3]
-        if cur_date <= finish_date and cur_date >= start_date and not str(offer[0]) in users_db.get_offers_taken(src.from_user.id):
+        if cur_date <= finish_date and cur_date >= start_date and (not str(offer[0]) in users_db.get_offers_taken(src.from_user.id)) and requests_db.check_if_offer_exist(src.from_user.id, offer[0]):
             if return_bool:
                 is_actual = True
                 break

@@ -69,6 +69,12 @@ class Request_sqliter:
 		self.cursor.execute(f"UPDATE requests SET status = {status} WHERE id = {id}")
 		self.commit()
 
+	@check_connection
+	def check_if_users_offer_exists(self, tg_id, offer_id):
+		self.cursor.execute(f"SELECT * FROM requests WHERE tg_id = {tg_id} AND offer_id = {offer_id}")
+		result = self.cursor.fetchall()
+		return bool(len(result))
+
 
 	@check_connection
 	def commit(self):
