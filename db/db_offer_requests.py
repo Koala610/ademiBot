@@ -4,9 +4,9 @@ class Offers_model:
         self.connection = connection
         self.cursor = self.connection.cursor()
 
-    def check_connection(self, f):
+    def check_connection(f):
         def wrapper(*args):
-            self.connection.ping(reconnect = True, attempts = 3, delay = 2)
+            args[0].connection.ping(reconnect = True)
             return f(*args)
         return wrapper
 

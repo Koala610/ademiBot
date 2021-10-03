@@ -4,13 +4,13 @@ class Request_sqliter:
 		self.connection = connection
 		self.cursor = self.connection.cursor()
 
-	def check_connection(self, f):
-        def wrapper(*args):
-            self.connection.ping(reconnect = True, attempts = 3, delay = 2)
-            return f(*args)
-        return wrapper
+	def check_connection(f):
+		def wrapper(*args):
+		    args[0].connection.ping(reconnect = True)
+		    return f(*args)
+		return wrapper
 
-    @check_connection
+	@check_connection
 	def add_request(self, tg_id, login, offer_id, story_link, file_id, trans_photo_id):
 		self.cursor.execute(f"INSERT INTO requests (tg_id, login, offer_id, story_link, photo_check_id, trans_photo_id) VALUES({tg_id}, '{login}', {offer_id}, '{story_link}', '{file_id}', '{trans_photo_id}')")
 		self.commit()
