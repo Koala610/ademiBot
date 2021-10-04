@@ -111,3 +111,10 @@ states_switch = {
     },
 }
 
+request_status_switch = {
+    0: "Status: In process",
+    1: "Status: Accepted",
+    -1: "Status: Declined",
+
+}
+
