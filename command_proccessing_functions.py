@@ -35,6 +35,7 @@ async def show_offers_taken(src):
     
 
 def check_cur_offers(src, category_id, cur_offers=None, return_bool=False):
+    user_id = src.from_user.id
     offers = offers_db.get_offers(category_id)
     cur_date = datetime.datetime.now().date()
     is_actual = False
@@ -46,7 +47,8 @@ def check_cur_offers(src, category_id, cur_offers=None, return_bool=False):
         start_date, finish_date = offer[2], offer[3]
         if cur_date <= finish_date and \
            cur_date >= start_date and \
-           (not str(offer[0]) in users_db.get_offers_taken(src.from_user.id)):
+           (not str(offer[0]) in users_db.get_offers_taken(user_id)) and \
+           not requests_db.check_if_users_offer_exists(user_id, offer[0]):
             if return_bool:
                 is_actual = True
                 break
