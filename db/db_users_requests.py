@@ -131,6 +131,7 @@ class User_sqliter(Sqliter):
 
     @Sqliter.check_connection
     def get_offers_taken(self, tg_id):
+        self.commit()
         self.cursor.execute(f"SELECT offers_taken FROM models WHERE tg_id = {tg_id}")
         offers_taken = self.cursor.fetchall()
         try:
