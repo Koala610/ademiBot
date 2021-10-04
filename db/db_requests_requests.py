@@ -1,22 +1,15 @@
-#from db_settings import *
-class Request_sqliter:
+from .sqliter import Sqliter
+class Request_sqliter(Sqliter):
 	def __init__(self, connection):
-		self.connection = connection
-		self.cursor = self.connection.cursor()
+		super().__init__(connection)
 
-	def check_connection(f):
-		def wrapper(*args):
-		    args[0].connection.ping(reconnect = True)
-		    return f(*args)
-		return wrapper
-
-	@check_connection
+	@Sqliter.check_connection
 	def add_request(self, tg_id, login, offer_id, story_link, file_id, trans_photo_id):
 		self.cursor.execute(f"INSERT INTO requests (tg_id, login, offer_id, story_link, photo_check_id, trans_photo_id) VALUES({tg_id}, '{login}', {offer_id}, '{story_link}', '{file_id}', '{trans_photo_id}')")
 		self.commit()
 
 
-	@check_connection
+	@Sqliter.check_connection
 	def get_all_requests(self):
 		self.cursor.execute("SELECT * FROM requests")
 		result = [list(row.values()) for row in self.cursor.fetchall()]
@@ -24,7 +17,7 @@ class Request_sqliter:
 		return result
 
 
-	@check_connection
+	@Sqliter.check_connection
 	def get_users_requests_by_status(self, id, status):
 		self.cursor.execute(f"SELECT * FROM requests WHERE status = {status} AND tg_id = {id}")
 		try:
@@ -34,7 +27,7 @@ class Request_sqliter:
 		return result
 
 
-	@check_connection
+	@Sqliter.check_connection
 	def get_request_tg_id(self, id):
 		self.cursor.execute(f"SELECT tg_id FROM requests WHERE id = {id}")
 		result = self.cursor.fetchall()
@@ -43,7 +36,7 @@ class Request_sqliter:
 		except IndexError:
 			return -1
 
-	@check_connection
+	@Sqliter.check_connection
 	def get_request_status(self, id):
 		self.cursor.execute(f"SELECT status FROM requests WHERE id = {id}")
 		result = self.cursor.fetchall()
@@ -54,7 +47,7 @@ class Request_sqliter:
 
 
 
-	@check_connection
+	@Sqliter.check_connection
 	def get_photos_by_id(self, id):
 		self.cursor.execute(f"SELECT photo_check_id, trans_photo_id FROM requests WHERE id = {id}")
 		result = self.cursor.fetchall()
@@ -64,21 +57,16 @@ class Request_sqliter:
 			return -1
 
 
-	@check_connection
+	@Sqliter.check_connection
 	def change_status(self, id, status):
 		self.cursor.execute(f"UPDATE requests SET status = {status} WHERE id = {id}")
 		self.commit()
 
-	@check_connection
+	@Sqliter.check_connection
 	def check_if_users_offer_exists(self, tg_id, offer_id):
 		self.cursor.execute(f"SELECT * FROM requests WHERE tg_id = {tg_id} AND offer_id = {offer_id}")
 		result = self.cursor.fetchall()
 		return bool(len(result))
-
-
-	@check_connection
-	def commit(self):
-		self.connection.commit()
 
 
 def main():

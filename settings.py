@@ -63,8 +63,8 @@ try:
 except Exception as ex:
 	print(ex)
 
-users_db = SQLighter(connection)
-offers_db = Offers_model(connection)
+users_db = User_sqliter(connection)
+offers_db = Offers_sqliter(connection)
 requests_db = Req_sql(connection)
 admins_db = Admin_sqliter(connection)
 #Инициализация баз данных

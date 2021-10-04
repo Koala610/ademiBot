@@ -1,17 +1,11 @@
-class Admin_sqliter:
+from .sqliter import Sqliter
+
+class Admin_sqliter(Sqliter):
     def __init__(self, connection):
-        self.connection = connection
-        self.cursor = self.connection.cursor()
+        super().__init__(connection)
 
 
-    def check_connection(f):
-        def wrapper(*args):
-            args[0].connection.ping(reconnect = True)
-            return f(*args)
-        return wrapper
-
-
-    @check_connection
+    @Sqliter.check_connection
     def check_if_exists(self, tg_id):
         self.cursor.execute(f"SELECT * FROM admins WHERE tg_id = {tg_id}")
         res = self.cursor.fetchall()
