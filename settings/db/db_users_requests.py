@@ -92,7 +92,7 @@ class User_sqliter(Sqliter):
 
     @Sqliter.check_connection
     def update_surname(self, tg_id, surname):
-        self.cursor.execute(f"UPDATE models SET surname = {surname} WHERE tg_id = {tg_id}")
+        self.cursor.execute(f"UPDATE models SET surname = '{surname}' WHERE tg_id = {tg_id}")
         self.commit()
 
 

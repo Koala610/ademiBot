@@ -6,7 +6,8 @@ from db_services import *
 async def login(message: types.Message):
     user_id = message.from_user.id
     message_id = message.message_id
-    if users_db.tg_id_exists(user_id):
+    if users_db.tg_id_exists(user_id) and \
+       not users_db.check_if_new(message.from_user.id):
         await show_profile(message)
     else:
         message_list = []
@@ -203,12 +204,16 @@ async def send_multicast_notification(src):
 
 async def check_full_fields(src, func=None, text=None):
     user_id = src.from_user.id
-    if func != None:
-        await func(user_id, text)
     optional_info = users_db.get_optional_info(user_id)
     length = len(optional_info)
+    cnt = 0
     for i in range(length):
         if optional_info[i] == None:
+            cnt+=1
+            if cnt:
+                if func != None:
+                    await func(user_id, text)
+
             await bot.send_message(user_id, "Введите " + states_switch[i]['name'] + ":" )
             await states_switch[i]["state"].set()
             return False

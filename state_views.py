@@ -37,10 +37,8 @@ async def add_password(message: types.Message, state: FSMContext):
         if not users_db.check_if_new(message.from_user.id):
             await show_succ_message(src=message, state=state, is_new=False)
         else:
-            await check_full_fields(message, bot.send_message, "Некоторые поля требуют заполнения...")
-
-
-
+            if await check_full_fields(message, bot.send_message, "Некоторые поля требуют заполнения..."):
+                await show_succ_message(message, state=state)
     else:
         del_message = await bot.send_message(message.from_user.id, "Пароль неверный")
         dlm_id = del_message.message_id
@@ -104,7 +102,7 @@ async def add_ids(message: types.Message, state: FSMContext):
     trigger = True if is_without_menu and list_len > 1 else False
     offers_ids_list = list(
         set([offer_id for offer_id in offers_ids_list if
-             check_if_offer_exist(offer_id)]))
+             check_if_offer_exist(offer_id)]))############
     offers_ids = '/'.join(offers_ids_list) if not trigger else "-1"
     if len(offers_ids) == 0:
         await bot.send_message(message.from_user.id, "Ошибка... ID не найдены. Повторите")
