@@ -54,7 +54,7 @@ offers_processing_btn = KeyboardButton("⏳ В обработке")
 offers_done_btn = KeyboardButton("💲 Завершённые")
 profile_menu = ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True, row_width = 2).add(new_offers_btn, offers_taken_btn, offers_processing_btn, offers_done_btn)
 
-
+admin_panel_btn = KeyboardButton("👤 Админ.панель")
 admin_req_btn = KeyboardButton("⏳ Запросы")
 notification_btn = KeyboardButton("🔔 Уведомления")
 support_btn = KeyboardButton("👤 Поддержка")

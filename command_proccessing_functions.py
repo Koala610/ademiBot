@@ -11,12 +11,9 @@ def check_if_offer_exist(offer_id):
 
 async def show_menu(src, text):
     tg_id = src.from_user.id
-    new_offers_btn = KeyboardButton("🔍 Найти предложения")
-    profile_btn = KeyboardButton("👤 Профиль")
     main_menu = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(profile_btn, new_offers_btn)
 
     if admins_db.check_if_exists(tg_id):
-        admin_panel_btn = KeyboardButton("👤 Админ.панель")
         main_menu.add(admin_panel_btn)
     await bot.send_message(tg_id, text, reply_markup=main_menu)
 
@@ -74,7 +71,7 @@ async def show_new_offers(src):
         await bot.send_message(src.from_user.id, "Список пуст") 
 
 async def show_offers(src, offers, cb_header, exist_filter = False):
-    inl_btn = list(nav.inline_btn_switch[cb_header].values())
+    inl_btn = list(inline_btn_switch[cb_header].values())
     cnt = 0
     for offer in offers:
         if exist_filter and str(offer) in users_db.get_offers_taken(src.from_user.id):
@@ -90,48 +87,6 @@ async def show_offers(src, offers, cb_header, exist_filter = False):
         await bot.send_message(user_id, result, reply_markup = menu,  parse_mode ='HTML')
         cnt+= 1
     return cnt
-
-
-async def get_requests(src, status = None, return_len = False):
-    requests = []
-    accept_btn = None
-    reject_btn = None
-    message_id = str(src.message_id) if type(src) == Message else str(src.message.message_id)
-    if status == None:
-        requests = requests_db.get_all_requests()
-    else:
-        requests = [requests_db.get_users_requests_by_status(src.from_user.id, status)]
-
-    if len(requests) == 0 or (len(requests) == 1 and len(requests[0])==0):
-        if status == 0:
-            await bot.send_message(src.from_user.id, "Список пуст")
-        return True
-    for request in requests:
-        if len(request) == 0:
-            continue
-        menu = InlineKeyboardMarkup()
-        if status == None and request[7] == 0:
-            header = "status_btn::" + str(request[0]) + "::"
-            header1_part = header + "1" + '::'
-            header2_part = header + "-1" +'::'
-            callback_data1 = header1_part + message_id
-            callback_data2 = header2_part + message_id
-            accept_btn = InlineKeyboardButton("Принять", callback_data = callback_data1)
-            reject_btn = InlineKeyboardButton("Отклонить", callback_data = callback_data2)
-            menu.add(accept_btn, reject_btn)
-
-        result = "Nickname: " + request[2] + '\n'
-        result += "Offer id: " + str(request[3]) + '\n'
-        result += "Business: " + offers_db.get_business_name(offers_db.get_business_id(request[3])) + '\n'
-        result += request_status_switch[int(request[7])]
-
-        check_photo = InputMediaPhoto(media = request[5])
-        trans_photo = InputMediaPhoto(media = request[6])
-
-
-        await bot.send_media_group(src.from_user.id, media = [check_photo, trans_photo])
-        await bot.send_message(src.from_user.id, result, reply_markup = menu)
-        del menu
 
 
 async def add_message_to_dl(message_id, user_id):
@@ -181,26 +136,7 @@ async def show_profile(src):
 
         
 
-    await bot.send_message(src.from_user.id, info_str, reply_markup=nav.profile_menu)
-
-async def show_admin_panel(src):
-    if admins_db.check_if_exists(src.from_user.id):
-        await bot.send_message(src.from_user.id, "...", reply_markup=nav.admin_menu)
-    else:
-        await bot.send_message(src.from_user.id, "У вас нет доступа к этому разделу...")
-
-async def show_admin_reqs(src):
-    if admins_db.check_if_exists(src.from_user.id):
-        await get_requests(src)
-    else:
-        await bot.send_message(src.from_user.id, "У вас нет доступа к этому разделу...")
-
-async def show_notification_panel(src):
-    user_id = src.from_user.id
-    if admins_db.check_if_exists(user_id):
-        await bot.send_message(user_id, "Выберите действие:", reply_markup=nav.not_menu)
-    else:
-        await bot.send_message(user_id, "У вас нет доступа к этому разделу...")
+    await bot.send_message(src.from_user.id, info_str, reply_markup=profile_menu)
 
 async def show_support_win(src):
     user_id = src.from_user.id
@@ -249,6 +185,25 @@ async def show_succ_message(src, state=None, is_new=True):
     if state != None:
         await state.finish()
     await dp.storage.close()
+
+async def show_admin_panel(src):
+    if admins_db.check_if_exists(src.from_user.id):
+        await bot.send_message(src.from_user.id, "...", reply_markup=admin_menu)
+    else:
+        await bot.send_message(src.from_user.id, "У вас нет доступа к этому разделу...")
+
+async def show_admin_reqs(src):
+    if admins_db.check_if_exists(src.from_user.id):
+        await get_requests(src)
+    else:
+        await bot.send_message(src.from_user.id, "У вас нет доступа к этому разделу...")
+
+async def show_notification_panel(src):
+    user_id = src.from_user.id
+    if admins_db.check_if_exists(user_id):
+        await bot.send_message(user_id, "Выберите действие:", reply_markup=not_menu)
+    else:
+        await bot.send_message(user_id, "У вас нет доступа к этому разделу...")
 
 
 command_switch = {

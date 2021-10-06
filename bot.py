@@ -115,7 +115,7 @@ async def add_notif_message(message: types.Message, state: FSMContext):
 
     for user_id in user_ids:
         await bot.send_message(chat_id=user_id, text=msg, reply_markup=detais_menu)
-    await bot.send_message(message.from_user.id, "Успешно", reply_markup=nav.admin_menu)
+    await bot.send_message(message.from_user.id, "Успешно", reply_markup=admin_menu)
     await state.finish()
 
 @dp.message_handler(state=Notification_states.id_obtain)
@@ -145,14 +145,14 @@ async def process_callback_details_btn(callback_query: types.CallbackQuery):
         offers_cnt = await show_offers(callback_query, offers_ids, 'sale',
                                        exist_filter=True)
     except:
-        await bot.send_message(user_id, "Ошибка... Номер заказа не определён", reply_markup=nav.profile_menu)
+        await bot.send_message(user_id, "Ошибка... Номер заказа не определён", reply_markup=profile_menu)
         return -1
     if offers_cnt == 0:
-        await bot.send_message(user_id, "К сожалению, ничего(", reply_markup=nav.profile_menu)
+        await bot.send_message(user_id, "К сожалению, ничего(", reply_markup=profile_menu)
     elif offers_cnt == -1:
-        await bot.send_message(user_id, "Ошибка", reply_markup=nav.profile_menu)
+        await bot.send_message(user_id, "Ошибка", reply_markup=profile_menu)
     else:
-        await bot.send_message(user_id, "...", reply_markup=nav.profile_menu)
+        await bot.send_message(user_id, "...", reply_markup=profile_menu)
 
 
 
@@ -164,7 +164,7 @@ async def bot_message(message: types.Message):
         except KeyError:
             return -1
     else:
-        await bot.send_message(message.from_user.id, "Вы не авторизованны...", reply_markup=nav.login_menu)
+        await bot.send_message(message.from_user.id, "Вы не авторизованны...", reply_markup=login_menu)
 
 
 
@@ -174,7 +174,7 @@ async def bot_message(message: types.Message):
 @dp.callback_query_handler(lambda c: 'profile_btn' in c.data)
 async def process_callback_profile_btn(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
-    await bot.send_message(callback_query.from_user.id, "...", reply_markup=nav.profile_menu)
+    await bot.send_message(callback_query.from_user.id, "...", reply_markup=profile_menu)
     await show_offers_taken(callback_query)
 
 
@@ -185,21 +185,21 @@ async def process_return_callback(callback_query: types.CallbackQuery):
     offer_id = callback_query.data.split('::')[1]
     await dp.storage.update_data(user=tg_id, offer_id=offer_id)
 
-    await bot.send_message(callback_query.from_user.id, "Введите ссылку на сторис/пост:", reply_markup=nav.exit_menu)
+    await bot.send_message(callback_query.from_user.id, "Введите ссылку на сторис/пост:", reply_markup=exit_menu)
     await Req_states.link.set()
 
 @dp.message_handler(state=Req_states.link)
 async def enter_link(message: types.Message, state: FSMContext):
     if message.text == "🚪 Выйти":
         await state.finish()
-        await bot.send_message(message.from_user.id, "Успешно", reply_markup=nav.profile_menu)
+        await bot.send_message(message.from_user.id, "Успешно", reply_markup=profile_menu)
         return 1
     if "instagram.com/stories" in message.text or "instagram.com/p" in message.text:
         await state.update_data(link=message.text)
-        await bot.send_message(message.from_user.id, "Отправьте скриншот перевода:", reply_markup=nav.exit_menu)
+        await bot.send_message(message.from_user.id, "Отправьте скриншот перевода:", reply_markup=exit_menu)
         await Req_states.picture2.set()
     else:
-        await bot.send_message(message.from_user.id, "Это не ссылка", reply_markup=nav.exit_menu)
+        await bot.send_message(message.from_user.id, "Это не ссылка", reply_markup=exit_menu)
 
 
 @dp.message_handler(content_types=['photo'], state=Req_states.picture2)
@@ -207,14 +207,14 @@ async def upload_pic2(message: types.Message, state: FSMContext):
     tg_id = message.from_user.id
     file_id = message.photo[-1].file_id
     await state.update_data(trans_pic=file_id)
-    await bot.send_message(message.from_user.id, "Отправьте фото чека...", reply_markup=nav.exit_menu)
+    await bot.send_message(message.from_user.id, "Отправьте фото чека...", reply_markup=exit_menu)
     await Req_states.picture.set()
 
 @dp.message_handler(state=Req_states.picture2)
 async def upload_pic_text2(message: types.Message, state: FSMContext):
     if message.text == "🚪 Выйти":
         await state.finish()
-        await bot.send_message(message.from_user.id, "Успешно", reply_markup=nav.profile_menu)
+        await bot.send_message(message.from_user.id, "Успешно", reply_markup=profile_menu)
         return 1
 
 
@@ -237,7 +237,7 @@ async def upload_pic(message: types.Message, state: FSMContext):
         await bot.send_message(message.from_user.id, "Ошибка")
         await state.finish()
 
-    await bot.send_message(message.from_user.id, "Успешно", reply_markup=nav.profile_menu)
+    await bot.send_message(message.from_user.id, "Успешно", reply_markup=profile_menu)
 
 
     await state.finish()
@@ -246,7 +246,7 @@ async def upload_pic(message: types.Message, state: FSMContext):
 async def upload_pic_text(message: types.Message, state: FSMContext):
     if message.text == "🚪 Выйти":
         await state.finish()
-        await bot.send_message(message.from_user.id, "Успешно", reply_markup=nav.profile_menu)
+        await bot.send_message(message.from_user.id, "Успешно", reply_markup=profile_menu)
         return 1
 
 
@@ -263,7 +263,7 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
     if offers_db.check_views_limit(offer_id) and not str(offer_id) in users_db.get_offers_taken(callback_query.from_user.id):
         users_db.add_offer(offer_id, callback_query.from_user.id)
         offers_db.increment_views(offer_id)
-        await bot.send_message(callback_query.from_user.id, "Вы успешно заняли место", reply_markup=nav.profile_menu)
+        await bot.send_message(callback_query.from_user.id, "Вы успешно заняли место", reply_markup=profile_menu)
 
         if num_id != '2':
             btn_text1 = "Мои регистрации"
@@ -291,7 +291,7 @@ async def show_more_info(callback_query: types.CallbackQuery):
     callback_data = callback_query.data.split('::')
     offer_id = callback_data[1]
     btn_id = callback_data[4]
-    btn1 = nav.get_inline_btn(btn_id, offer_id, num=2)
+    btn1 = get_inline_btn(btn_id, offer_id, num=2)
     menu = InlineKeyboardMarkup().add(btn1)
     bus_name = offers_db.get_business_name(offers_db.get_business_id(offer_id))
     offer = offers_db.get_info(offer_id)
