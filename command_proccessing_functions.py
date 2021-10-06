@@ -45,7 +45,6 @@ def check_cur_offers(src, category_id, cur_offers=None, return_bool=False):
             continue
 
         start_date, finish_date = offer[2], offer[3]
-        print(users_db.get_offers_taken(user_id))
         is_in_time_range = cur_date <= finish_date and cur_date >= start_date
         is_in_users_offers = str(offer[0]) in users_db.get_offers_taken(user_id)
         is_in_requests = requests_db.check_if_users_offer_exists(user_id, offer[0])
