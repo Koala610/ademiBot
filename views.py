@@ -1,5 +1,6 @@
 from db_services import *
 
+
 @dp.message_handler(lambda message: message.text and 
                     (message.text == '/start' or message.text == '🚪 Войти'))
 async def login(message: types.Message):
@@ -17,6 +18,8 @@ async def login(message: types.Message):
         await add_message_to_dl(dlm_id, user_id)
 
         await States.first()
+
+
 
 
 

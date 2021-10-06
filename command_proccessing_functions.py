@@ -3,11 +3,7 @@ from state_views import *
 
 
 
-async def add_message_to_dl(message_id, user_id):
-    strg = await dp.storage.get_data(user = user_id)
-    message_list = strg.get('msg_list')
-    message_list.append(message_id)
-    await dp.storage.update_data(msg_list = message_list, user = user_id)
+
 
 
 
