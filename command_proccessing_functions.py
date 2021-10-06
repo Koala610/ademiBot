@@ -92,7 +92,7 @@ async def show_offers(src, offers, cb_header, exist_filter = False):
     return cnt
 
 
-async def get_requests(src, status = None):
+async def get_requests(src, status = None, return_len = False):
     requests = []
     accept_btn = None
     reject_btn = None
@@ -103,8 +103,9 @@ async def get_requests(src, status = None):
         requests = [requests_db.get_users_requests_by_status(src.from_user.id, status)]
 
     if len(requests) == 0 or (len(requests) == 1 and len(requests[0])==0):
-        await bot.send_message(src.from_user.id, "Список пуст")
-        return -1
+        if status == 0:
+            await bot.send_message(src.from_user.id, "Список пуст")
+        return True
     for request in requests:
         if len(request) == 0:
             continue
@@ -212,9 +213,10 @@ async def show_proccessing_reqs(src):
     await get_requests(src, status=0)
 
 async def show_finished_reqs(src):
-    await get_requests(src, status=1)
-    await get_requests(src, status=-1)
-
+    trigger_one = await get_requests(src, status=1)
+    trigger_two = await get_requests(src, status=-1)
+    if trigger_one == True and trigger_two == True:
+        await bot.send_message(src.from_user.id, "Список пуст")
 
 async def send_broadcast_notification(src):
     user_id = src.from_user.id
