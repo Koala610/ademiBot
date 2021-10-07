@@ -1,6 +1,7 @@
 from db_services import *
 
-
+@dp.message_handler(lambda message: message.text and 
+                    (message.text == '/start' or message.text == '🚪 Войти'))
 async def login(message):
     user_id = message.from_user.id
     message_id = message.message_id

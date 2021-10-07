@@ -29,6 +29,4 @@ command_switch = {
     "/notification": show_notification_panel,
     "📢 Отправить всем": send_broadcast_notification,
     "📢 Отправить по категориям": send_multicast_notification,
-    '/start': login,
-    '🚪 Войти': login,
 }
