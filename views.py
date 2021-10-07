@@ -1,9 +1,7 @@
 from db_services import *
 
 
-@dp.message_handler(lambda message: message.text and 
-                    (message.text == '/start' or message.text == '🚪 Войти'))
-async def login(message: types.Message):
+async def login(message):
     user_id = message.from_user.id
     message_id = message.message_id
     if users_db.tg_id_exists(user_id) and \
@@ -85,7 +83,7 @@ async def show_admin_panel(src):
 
 async def show_admin_reqs(src):
     if admins_db.check_if_exists(src.from_user.id):
-        await get_requests(src)
+        await show_requests(src)
     else:
         await bot.send_message(src.from_user.id, "У вас нет доступа к этому разделу...")
 
@@ -165,33 +163,24 @@ async def show_support_win(src):
         await bot.send_message(user_id, "User")
 
 async def show_proccessing_reqs(src):
-    await get_requests(src, status=0)
+    if await show_requests(src, status=0):
+        await bot.send_message(src.from_user.id, "Список пуст")
 
 async def show_finished_reqs(src):
-    trigger_one = await get_requests(src, status=1)
-    trigger_two = await get_requests(src, status=-1)
-    if trigger_one == True and trigger_two == True:
+    trigger_one = await show_requests(src, status=1)
+    trigger_two = await show_requests(src, status=-1)
+    if trigger_one and trigger_two:
         await bot.send_message(src.from_user.id, "Список пуст")
 
-async def get_requests(src, status = None, return_len = False):
+async def show_requests(src, status = None):
     user_id = src.from_user.id
     message_id = str(src.message_id) if type(src) == Message else str(src.message.message_id)
-    requests = get_requests_by_status(status, user_id)
-    requests_len = len(requests)
-    is_empty = requests_len == 0 or (requests_len == 1 and \
-               len(requests[0]) == 0)   
-    if is_empty:
-        await bot.send_message(src.from_user.id, "Список пуст")
-        return True
+    requests = [request for request in get_requests_by_status(status, user_id) if not len(request) == 0]
     for request in requests:
-        if len(request) == 0:
-            continue
-        menu = InlineKeyboardMarkup()
-        if status == None and request[7] == 0:
-            menu = _get_request_markup(menu, request[0], message_id)
+        menu = _get_request_markup(menu, request[0], message_id) if status == None and request[7] == 0 else InlineKeyboardMarkup()
         await send_multi_media_message(
             [request[5], request[6]], user_id, _get_request_string_info(request), menu)
-        del menu
+    return len(requests) == 0
 
 async def send_broadcast_notification(src):
     user_id = src.from_user.id

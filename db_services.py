@@ -13,6 +13,14 @@ def get_requests_by_status(status, user_id):
     else:
         return [requests_db.get_users_requests_by_status(user_id, status)]
 
+def check_if_requests_empty(user_id, status):
+    requests = [request for request in get_requests_by_status(status, user_id) if not len(request) == 0]
+    return len(requests) == 0 
+
+def add_offer(offer_id, user_id):
+    users_db.add_offer(offer_id, user_id)
+    offers_db.increment_views(offer_id)
+
 
 def check_if_offer_exist(offer_id):
     try:

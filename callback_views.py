@@ -49,8 +49,7 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
     except:
         pass
     if offers_db.check_views_limit(offer_id) and not str(offer_id) in users_db.get_offers_taken(callback_query.from_user.id):
-        users_db.add_offer(offer_id, callback_query.from_user.id)
-        offers_db.increment_views(offer_id)
+        add_offer(offer_id, callback_query.from_user.id)
         await bot.send_message(callback_query.from_user.id, "Вы успешно заняли место", reply_markup=profile_menu)
 
         if num_id != '2':
@@ -79,11 +78,13 @@ async def show_more_info(callback_query: types.CallbackQuery):
     callback_data = callback_query.data.split('::')
     offer_id = callback_data[1]
     btn_id = callback_data[4]
+
     btn1 = get_inline_btn(btn_id, offer_id, num=2)
     menu = InlineKeyboardMarkup().add(btn1)
     bus_name = offers_db.get_business_name(offers_db.get_business_id(offer_id))
     offer = offers_db.get_info(offer_id)
     views_left = str(int(offer['views_limit']) - int(offer['views_count']))
+    
     result = '<b>' + offer['theme'] + '</b>' + '\n'
     result += "Организатор: " + bus_name + '\n'
     result += offer['text'] + '\n'
