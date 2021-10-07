@@ -22,6 +22,9 @@ class User_sqliter(Sqliter):
 
     @Sqliter.check_connection
     def user_exists(self, login):
+        for fil in self.FILTERS:
+            if fil in login:
+                return False
         self.cursor.execute(f"SELECT * FROM models WHERE login = '{login}'")
         result = self.cursor.fetchall()
         return bool(len(result))
@@ -111,6 +114,9 @@ class User_sqliter(Sqliter):
 
     @Sqliter.check_connection
     def password_exists(self, login, password):
+        for fil in self.FILTERS:
+            if fil in password or fil in login:
+                return False
         self.cursor.execute(f"SELECT * FROM models WHERE password = '{password}' AND login = '{login}'")
         result = self.cursor.fetchall()
         return bool(len(result))

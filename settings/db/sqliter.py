@@ -1,4 +1,5 @@
 class Sqliter:
+	FILTERS = ['UNION', ' or ', ' OR ', '#']
 	def __init__(self, connection):
 	    self.connection = connection
 	    self.cursor = self.connection.cursor()
