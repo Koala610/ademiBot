@@ -1,4 +1,6 @@
+from db_services import *
 from views import *
+from settings import types
 
 
 @dp.callback_query_handler(lambda c: 'details_btn' in c.data)

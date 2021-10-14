@@ -1,4 +1,7 @@
+from bot_init import bot, dp
+from db_connect import users_db, offers_db, requests_db, admins_db
 from settings import *
+from states import *
 
 async def add_message_to_dl(message_id, user_id):
     strg = await dp.storage.get_data(user = user_id)
