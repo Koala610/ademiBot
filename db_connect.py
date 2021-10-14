@@ -1,18 +1,25 @@
 import pymysql
 import os
 
-from .db import *
+from db import *
+
+def _get_parsed_url(url: list) -> dict:
+	if type(url) != list:
+		return -1
+	data = {}
+	data['user'] = s[0]
+	data['password'] = s[1].split('@')[0]
+	data['host'] = s[1].split('@')[1]
+	data['port'] = int(s[2].split('/')[0])
+	data['database'] = s[2].split('/')[1]
+	data['cursorclass'] = pymysql.cursors.DictCursor
+	return data
+
 
 db_link = os.getenv('JAWSDB_URL')
 
 s = db_link.split("mysql://")[1].split(':')
-db_settings = {}
-db_settings['user'] = s[0]
-db_settings['password'] = s[1].split('@')[0]
-db_settings['host'] = s[1].split('@')[1]
-db_settings['port'] = int(s[2].split('/')[0])
-db_settings['database'] = s[2].split('/')[1]
-db_settings['cursorclass'] = pymysql.cursors.DictCursor
+db_settings = _get_parsed_url(s)
 
 try:
     connection = pymysql.connect(
